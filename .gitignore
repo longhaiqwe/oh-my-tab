@@ -1,0 +1,10 @@
+.DS_Store
+.superpowers/
+node_modules/
+dist/
+*.bak
+*.bak.*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*

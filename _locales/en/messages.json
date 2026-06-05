@@ -1,0 +1,18 @@
+{
+  "extensionName": {
+    "message": "OhMyTab",
+    "description": "Extension name shown in English Chrome UI."
+  },
+  "extensionShortName": {
+    "message": "OhMyTab",
+    "description": "Short extension name shown when space is limited."
+  },
+  "extensionDescription": {
+    "message": "A focused new tab dashboard for custom links, todos, weather, notes, and recent browsing.",
+    "description": "Extension description shown in English Chrome UI."
+  },
+  "actionDefaultTitle": {
+    "message": "Open OhMyTab",
+    "description": "Toolbar action tooltip in English Chrome UI."
+  }
+}

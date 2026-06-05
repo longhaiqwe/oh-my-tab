@@ -1,0 +1,19 @@
+{
+  "name": "ohmytab",
+  "version": "0.1.0",
+  "description": "A calm, local-first Chrome MV3 new tab dashboard.",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "test": "node scripts/verify-anniversary-utils.mjs && node scripts/verify-weread-sync-core.mjs && node scripts/verify-weread-scan-connect.mjs && node scripts/verify-weread-background.mjs && node scripts/verify-integration.mjs",
+    "build:notes": "esbuild src/note-editor.js --bundle --format=iife --outfile=assets/note-editor.bundle.js",
+    "build:release": "npm run build:notes && node scripts/build-release.mjs"
+  },
+  "dependencies": {
+    "@tiptap/core": "^2.12.0",
+    "@tiptap/starter-kit": "^2.12.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0"
+  }
+}

@@ -1,0 +1,605 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>OhMyTab</title>
+    <link rel="icon" href="assets/icon32.png" type="image/png">
+    <link rel="stylesheet" href="newtab.css">
+  </head>
+  <body>
+    <nav id="mainTabs" class="main-tabs" aria-label="功能切换">
+      <button class="main-tab is-active" type="button" data-main-tab="work" aria-pressed="true">
+        <span class="main-tab-kicker">Daily</span>
+        <span>日常工作</span>
+      </button>
+      <button class="main-tab" type="button" data-main-tab="tabs" aria-pressed="false">
+        <span class="main-tab-kicker">Tabs</span>
+        <span>标签管理</span>
+      </button>
+      <button class="main-tab" type="button" data-main-tab="reading" aria-pressed="false">
+        <span class="main-tab-kicker">Read</span>
+        <span>读书回顾</span>
+      </button>
+      <button class="main-tab" type="button" data-main-tab="anniversary" aria-pressed="false">
+        <span class="main-tab-kicker">Family</span>
+        <span>纪念日提醒</span>
+      </button>
+    </nav>
+
+    <main id="workView" class="canvas main-view" data-main-view="work">
+      <div class="grain" aria-hidden="true"></div>
+
+      <section class="hero" aria-label="新标签页">
+        <div class="day-row">
+          <p id="dayLine" class="day-line">今天</p>
+          <button id="focusToggle" class="focus-toggle" type="button" aria-label="番茄钟">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="12" r="7"></circle>
+              <path d="M12 8v4l2.5 2.5"></path>
+              <path d="M9 3h6"></path>
+            </svg>
+          </button>
+          <button id="noteCreateButton" class="focus-toggle note-toggle" type="button" aria-label="新建便签">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M6 4h9l3 3v13H6z"></path>
+              <path d="M14 4v4h4"></path>
+              <path d="M9 12h6"></path>
+              <path d="M9 16h4"></path>
+            </svg>
+          </button>
+          <button id="todoModuleToggle" class="focus-toggle module-toggle" type="button" aria-label="切换待办"></button>
+          <button id="musicModuleToggle" class="focus-toggle module-toggle" type="button" aria-label="切换音乐"></button>
+        </div>
+        <div id="clockFace" class="clock-face">
+          <h1 id="timeLine">00:00</h1>
+        </div>
+        <div id="focusFace" class="focus-face" hidden>
+          <div id="homePomodoroTime" class="home-pomodoro-time">25:00</div>
+          <div class="home-pomodoro-tools">
+            <div class="pomodoro-modes" aria-label="番茄钟模式">
+              <button class="is-active" type="button" data-pomodoro-mode="focus">25</button>
+              <button type="button" data-pomodoro-mode="break">5</button>
+            </div>
+            <button id="homePomodoroStart" class="round-tool" type="button" aria-label="开始或暂停">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"></path></svg>
+            </button>
+            <button id="homePomodoroReset" class="round-tool" type="button" aria-label="重置">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12a7 7 0 1 0 2-5"></path><path d="M5 4v5h5"></path></svg>
+            </button>
+          </div>
+        </div>
+        <p id="momentLine" class="moment-line" aria-live="polite">把常用入口留在安静处。</p>
+
+        <form id="searchForm" class="command" role="search" autocomplete="off">
+          <label class="sr-only" for="globalSearch">搜索网址或历史</label>
+          <div id="siteSearchPill" class="site-search-pill" hidden>
+            <span id="siteSearchLabel">站内搜索</span>
+            <button id="clearSiteSearch" type="button" aria-label="退出站内搜索">×</button>
+          </div>
+          <div class="search-provider">
+            <button id="searchProviderButton" class="search-provider-button" type="button" aria-label="切换搜索引擎" aria-haspopup="true" aria-expanded="false">
+            </button>
+            <div id="searchProviderMenu" class="search-provider-menu" hidden></div>
+          </div>
+          <input id="globalSearch" type="text" placeholder="搜索网址、历史或收藏" autocomplete="off" autofocus>
+          <div id="searchPanel" class="search-panel" hidden>
+            <div id="searchTabHint" class="search-tab-hint" hidden></div>
+            <div id="searchResults" class="search-results" role="listbox"></div>
+          </div>
+        </form>
+        <section id="todoHome" class="todo-home" aria-label="今日待办">
+          <form id="todoForm" class="todo-form">
+            <label class="sr-only" for="todoInput">添加待办</label>
+            <input id="todoInput" type="text" placeholder="写下一件事" autocomplete="off" maxlength="120">
+            <button id="todoArchiveButton" class="todo-archive-button" type="button" aria-label="查看最近完成的待办"></button>
+          </form>
+          <div id="todoList" class="todo-list" aria-live="polite"></div>
+        </section>
+        <section id="musicWidget" class="music-widget" aria-label="OhMyTab Music" hidden>
+          <div id="musicPlayer" class="music-player" aria-live="polite"></div>
+          <audio id="musicAudio" preload="metadata" crossorigin="anonymous"></audio>
+        </section>
+        <section id="quickSites" class="quick-sites" aria-label="自定义网站">
+          <div id="quickSiteRail" class="quick-site-rail" aria-live="polite"></div>
+          <div id="quickSiteDots" class="quick-site-dots" aria-hidden="true"></div>
+        </section>
+        <footer class="product-credits work-product-credits" aria-label="项目致谢">
+          日常工具页基于
+          <a href="https://github.com/joeseesun/qiaomu-tab" target="_blank" rel="noopener noreferrer">乔木 Tab</a>
+          的产品思路驱动，感谢
+          <a href="https://x.com/vista8" target="_blank" rel="noopener noreferrer">乔木</a>
+          对新标签页工作台体验的打磨。
+        </footer>
+      </section>
+    </main>
+
+    <section id="tabManagerView" class="main-view tab-manager-view" data-main-view="tabs" hidden>
+      <div class="tabout-container">
+        <header class="tabout-header">
+          <div class="header-left">
+            <h1 id="tabManagerGreeting">Good afternoon</h1>
+            <div class="date" id="tabManagerDateDisplay"></div>
+          </div>
+        </header>
+
+        <div class="tab-cleanup-banner" id="tabOutDupeBanner" hidden>
+          <div class="tab-cleanup-left">
+            <div class="tab-cleanup-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 0 1-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75"></path>
+                <path d="M15.75 17.25h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876"></path>
+              </svg>
+            </div>
+            <div class="tab-cleanup-text">
+              当前打开了 <strong id="tabOutDupeCount">0</strong> 个新标签页，保留这一页即可。
+            </div>
+          </div>
+          <button class="tab-cleanup-btn" data-tab-action="close-tabout-dupes" type="button">关闭多余页</button>
+        </div>
+
+        <div class="dashboard-columns" id="dashboardColumns">
+          <div class="active-section" id="openTabsSection" hidden>
+            <div class="section-header">
+              <h2 id="openTabsSectionTitle">Open tabs</h2>
+              <div class="section-line"></div>
+              <div class="section-count" id="openTabsSectionCount"></div>
+            </div>
+            <div class="missions" id="openTabsMissions"></div>
+          </div>
+
+          <div class="deferred-column" id="deferredColumn" hidden>
+            <div class="section-header">
+              <h2>Saved for later</h2>
+              <div class="section-line"></div>
+              <div class="section-count" id="deferredCount"></div>
+            </div>
+            <div class="deferred-list" id="deferredList"></div>
+            <div class="deferred-empty" id="deferredEmpty" hidden>Nothing saved. Living in the moment.</div>
+            <div class="deferred-archive" id="deferredArchive" hidden>
+              <button class="archive-toggle" id="archiveToggle" type="button">
+                <svg class="archive-chevron" viewBox="0 0 24 24"><path d="m19.5 8.25-7.5 7.5-7.5-7.5"></path></svg>
+                Archive
+                <span class="archive-count" id="archiveCount"></span>
+              </button>
+              <div class="archive-body" id="archiveBody" hidden>
+                <input type="text" class="archive-search" id="archiveSearch" placeholder="Search archived tabs...">
+                <div class="archive-list" id="archiveList"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <footer class="tabout-footer">
+          <div class="footer-stats">
+            <div class="stat">
+              <div class="stat-num" id="statTabs">-</div>
+              <div class="stat-label">Open tabs</div>
+            </div>
+          </div>
+          <div class="product-credit-inline">
+            标签管理基于
+            <a href="https://github.com/longhaiqwe/tab-out#" target="_blank" rel="noopener noreferrer">tabout</a>
+            的产品思路驱动，感谢
+            <a href="https://x.com/zarazhangrui" target="_blank" rel="noopener noreferrer">Zara Zhang</a>
+            对标签管理体验的启发。
+          </div>
+        </footer>
+      </div>
+    </section>
+
+    <section id="readingReviewView" class="main-view reading-review-view" data-main-view="reading" hidden>
+      <div class="reading-review-shell">
+        <header class="reading-review-header">
+          <div>
+            <p class="section-eyebrow">WeRead review</p>
+            <h1>微信读书回顾</h1>
+          </div>
+          <div class="reading-review-stats">
+            <span id="readingProgress">0 / 0</span>
+            <button id="readingWereadSettingsButton" class="icon-text-button reading-sync-settings-button" type="button">同步设置</button>
+            <button id="readingCopyButton" class="icon-text-button" type="button">复制</button>
+            <button id="readingExportButton" class="icon-text-button reading-export-button" type="button">导出图</button>
+          </div>
+        </header>
+
+        <article id="readingReviewCard" class="reading-review-card" aria-live="polite">
+          <div class="reading-empty">
+            <h2>正在载入本地笔记</h2>
+            <p>正在读取本机同步数据。</p>
+          </div>
+        </article>
+
+        <div class="reading-review-actions">
+          <button id="readingPreviousButton" class="action-btn" type="button">上一个</button>
+          <button id="readingRandomButton" class="action-btn primary" type="button">随机回顾</button>
+          <a id="readingOpenButton" class="action-btn" href="#" target="_blank" rel="noopener">打开原文</a>
+        </div>
+        <footer class="product-credits shell-product-credits" aria-label="项目致谢">
+          读书回顾感谢
+          <a href="https://readecho.cn/" target="_blank" rel="noopener noreferrer">Readecho</a>
+          产品带来的启发。
+        </footer>
+      </div>
+      <div id="readingWereadSyncDrawerBackdrop" class="reading-weread-sync-backdrop" hidden>
+        <aside id="readingWereadSyncPanel" class="reading-weread-sync-drawer weread-sync-card" aria-label="微信读书同步设置" aria-hidden="true">
+          <div class="reading-weread-sync-head">
+            <div>
+              <p class="section-eyebrow">Sync</p>
+              <h2>微信读书同步</h2>
+            </div>
+            <button id="readingWereadSettingsCloseButton" class="icon-button" type="button" aria-label="关闭">×</button>
+          </div>
+          <div class="reading-weread-sync-state">
+            <span id="wereadSyncStatus">未配置</span>
+          </div>
+          <p class="weread-connect-copy">用微信扫码登录官方页面，OhMyTab 会在本机保存连接凭证。</p>
+          <div class="weread-sync-actions weread-connect-actions">
+            <button id="wereadScanConnectButton" class="primary" type="button">扫码连接微信读书</button>
+            <button id="wereadManualKeyToggle" class="ghost" type="button" aria-expanded="false">我已有 API Key</button>
+          </div>
+          <div id="wereadManualKeyPanel" class="weread-manual-key-panel" hidden>
+            <label class="weread-key-field">
+              <span>API Key</span>
+              <input id="wereadApiKey" type="password" placeholder="wrk-..." autocomplete="off" spellcheck="false">
+            </label>
+            <div class="weread-sync-actions">
+              <button id="wereadSaveSyncButton" class="primary" type="button">保存并同步</button>
+              <button id="wereadSyncNowButton" class="ghost" type="button">立即同步</button>
+            </div>
+          </div>
+          <div class="weread-sync-status" aria-live="polite">
+            <span id="wereadLastSync">尚未同步</span>
+            <span id="wereadSyncSummary">0 条笔记</span>
+          </div>
+          <p class="weread-sync-privacy">扫码在微信读书官方页面完成；OhMyTab 只保存官方展示的 key，key 和笔记只保存在这台设备上。</p>
+          <div class="weread-danger-row">
+            <button id="wereadClearKeyButton" class="ghost danger" type="button">清除 key</button>
+            <button id="wereadClearNotesButton" class="ghost danger" type="button">清除本地笔记</button>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section id="anniversaryReminderView" class="main-view anniversary-reminder-view" data-main-view="anniversary" hidden>
+      <div class="anniversary-shell">
+        <header class="anniversary-header">
+          <div>
+            <h1>家庭纪念日</h1>
+            <div class="date" id="anniversaryDateDisplay"></div>
+          </div>
+          <div class="anniversary-header-actions">
+            <button id="anniversaryAllButton" class="action-btn" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 21l-4.35-4.35"></path><circle cx="11" cy="11" r="7"></circle></svg>
+              全部
+            </button>
+            <button id="anniversaryAddButton" class="action-btn primary" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>
+              新增
+            </button>
+          </div>
+        </header>
+
+        <section class="anniversary-upcoming-section" aria-label="近期纪念日">
+          <div class="section-header">
+            <h2>Coming up</h2>
+            <div class="section-line"></div>
+            <div id="anniversaryShownCount" class="section-count">0 shown</div>
+          </div>
+          <div id="anniversaryUpcomingList" class="anniversary-upcoming-list" aria-live="polite"></div>
+        </section>
+
+        <footer class="anniversary-footer">
+          <div class="footer-stats">
+            <div class="stat">
+              <div class="stat-num" id="anniversaryTotalCount">0</div>
+              <div class="stat-label">Events</div>
+            </div>
+            <div class="stat">
+              <div class="stat-num" id="anniversaryUpcomingCount">0</div>
+              <div class="stat-label">Upcoming</div>
+            </div>
+            <div class="stat">
+              <div class="stat-num" id="anniversaryLunarCount">0</div>
+              <div class="stat-label">Lunar</div>
+            </div>
+          </div>
+          <div class="last-refresh">Local first · Chrome storage</div>
+        </footer>
+      </div>
+    </section>
+
+    <section id="notesLayer" class="notes-layer" aria-label="便签"></section>
+
+    <button id="weatherEdge" class="weather-edge" type="button" aria-label="打开天气"></button>
+    <aside id="weatherDrawer" class="weather-drawer" aria-label="天气" aria-hidden="true">
+      <div class="drawer-head weather-drawer-head">
+        <div>
+          <p>天气</p>
+          <span id="weatherSummary">关注地区</span>
+        </div>
+        <button id="closeWeatherButton" class="drawer-close" type="button" aria-label="关闭">×</button>
+      </div>
+      <section class="weather-panel">
+        <form id="weatherSearchForm" class="weather-search">
+          <label class="sr-only" for="weatherCitySearch">添加地区</label>
+          <input id="weatherCitySearch" type="search" placeholder="搜索城市、区县或 adcode" autocomplete="off">
+        </form>
+        <div id="weatherCityResults" class="weather-city-results" aria-live="polite"></div>
+        <div id="weatherCards" class="weather-cards" aria-live="polite"></div>
+      </section>
+    </aside>
+
+    <button id="drawerEdge" class="drawer-edge" type="button" aria-label="打开侧栏"></button>
+    <aside id="recentDrawer" class="recent-drawer" aria-label="侧栏" aria-hidden="true">
+      <div class="drawer-head">
+        <button id="closeRecentButton" class="drawer-close" type="button" aria-label="关闭">×</button>
+      </div>
+      <nav class="drawer-tabs" aria-label="侧栏视图">
+        <button class="drawer-tab" type="button" data-drawer-tab="recent">最近访问</button>
+        <button class="drawer-tab is-active" type="button" data-drawer-tab="bookmarks">收藏夹</button>
+        <button class="drawer-tab" type="button" data-drawer-tab="settings">设置</button>
+      </nav>
+      <section id="historyPanel" class="drawer-panel" data-panel="recent">
+        <div class="drawer-section-head">
+          <h2>最近访问</h2>
+          <span>72 小时</span>
+        </div>
+        <label class="drawer-search">
+          <span class="sr-only">搜索最近访问</span>
+          <input id="recentSearch" type="search" placeholder="搜索最近访问" autocomplete="off">
+        </label>
+        <div id="historyGroups" class="trace-list" aria-live="polite"></div>
+      </section>
+      <section id="bookmarksPanel" class="drawer-panel is-active" data-panel="bookmarks">
+        <div class="drawer-section-head">
+          <h2>收藏夹</h2>
+          <span id="bookmarkSummary">浏览器收藏</span>
+        </div>
+        <label class="drawer-search">
+          <span class="sr-only">搜索收藏夹</span>
+          <input id="bookmarkSearch" type="search" placeholder="搜索收藏夹" autocomplete="off">
+        </label>
+        <div id="bookmarkList" class="bookmark-list" aria-live="polite"></div>
+      </section>
+
+      <form id="settingsPanel" class="settings-panel drawer-panel" data-panel="settings">
+        <h2>设置</h2>
+        <section class="setting-block">
+          <p>语言</p>
+          <div class="choice-grid language-grid" data-setting="language">
+            <button type="button" data-value="auto">跟随浏览器</button>
+            <button type="button" data-value="zh">中文</button>
+            <button type="button" data-value="en">English</button>
+          </div>
+        </section>
+        <section class="setting-block">
+          <p>搜索</p>
+          <div class="choice-grid" data-setting="searchEngine">
+            <button type="button" data-value="google">Google</button>
+            <button type="button" data-value="chatgpt">ChatGPT</button>
+            <button type="button" data-value="doubao">豆包</button>
+            <button type="button" data-value="kimi">Kimi</button>
+            <button type="button" data-value="baidu">百度</button>
+            <button type="button" data-value="bing">Bing</button>
+            <button type="button" data-value="duckduckgo">DuckDuckGo</button>
+            <button type="button" data-value="todo">Todo</button>
+          </div>
+        </section>
+        <section class="setting-block">
+          <p>模块</p>
+          <div class="toggle-grid">
+            <button id="showTodos" type="button" data-toggle="showTodos">待办</button>
+            <button id="showMusicWidget" type="button" data-toggle="showMusicWidget">音乐</button>
+            <button id="showCustomLinks" type="button" data-toggle="showCustomLinks">自定义收藏</button>
+          </div>
+        </section>
+        <section class="setting-block">
+          <p>壁纸</p>
+          <div class="wallpaper-grid" data-setting="wallpaper">
+            <button type="button" data-value="none">
+              <span class="wallpaper-swatch wallpaper-none"></span>
+              默认
+            </button>
+            <button type="button" data-value="mist">
+              <span class="wallpaper-swatch wallpaper-mist"></span>
+              海雾
+            </button>
+            <button type="button" data-value="dune">
+              <span class="wallpaper-swatch wallpaper-dune"></span>
+              暖沙
+            </button>
+            <button type="button" data-value="rain">
+              <span class="wallpaper-swatch wallpaper-rain"></span>
+              雨窗
+            </button>
+            <button type="button" data-value="blue">
+              <span class="wallpaper-swatch wallpaper-blue"></span>
+              夜色
+            </button>
+          </div>
+        </section>
+        <section class="setting-block">
+          <p>外观</p>
+          <div class="choice-grid" data-setting="theme">
+            <button type="button" data-value="light">浅色</button>
+            <button type="button" data-value="dark">深色</button>
+          </div>
+        </section>
+        <section class="setting-block">
+          <p>好句</p>
+          <div class="choice-grid" data-setting="showQuote">
+            <button id="showQuoteOn" type="button" data-value="true">开</button>
+            <button id="showQuoteOff" type="button" data-value="false">关</button>
+          </div>
+        </section>
+        <section class="setting-block">
+          <p>同步</p>
+          <div class="settings-row">
+            <span>本地优先</span>
+            <span class="settings-pill">待接入</span>
+          </div>
+        </section>
+      </form>
+    </aside>
+    <div id="drawerScrim" class="drawer-scrim" hidden></div>
+
+    <div id="commandPalette" class="command-palette" hidden>
+      <div class="command-backdrop"></div>
+      <section class="command-menu" role="dialog" aria-modal="true" aria-label="命令面板">
+        <div class="command-search">
+          <div class="search-provider command-search-provider">
+            <button id="commandSearchProviderButton" class="search-provider-button" type="button" aria-label="切换搜索引擎" aria-haspopup="true" aria-expanded="false">
+            </button>
+            <div id="commandSearchProviderMenu" class="search-provider-menu" hidden></div>
+          </div>
+          <label class="sr-only" for="commandInput">命令搜索</label>
+          <input id="commandInput" type="text" placeholder="搜索命令、收藏、最近访问" autocomplete="off">
+          <kbd>⌘K</kbd>
+        </div>
+        <div id="commandResults" class="command-results" role="listbox"></div>
+      </section>
+    </div>
+
+    <div id="anniversaryDrawerBackdrop" class="anniversary-drawer-backdrop" hidden>
+      <aside id="anniversaryDrawer" class="anniversary-drawer" aria-label="全部纪念日" aria-hidden="true">
+        <div class="anniversary-drawer-inner">
+          <div class="anniversary-drawer-head">
+            <div>
+              <h2>全部纪念日</h2>
+              <p>搜索、检查和进入编辑。</p>
+            </div>
+            <button id="anniversaryDrawerCloseButton" class="icon-button" type="button" aria-label="关闭">×</button>
+          </div>
+          <label class="sr-only" for="anniversarySearchInput">搜索纪念日</label>
+          <input id="anniversarySearchInput" class="anniversary-search-input" type="search" placeholder="搜索名称或日期" autocomplete="off">
+          <div id="anniversaryDrawerList" class="anniversary-drawer-list" aria-live="polite"></div>
+          <div class="anniversary-drawer-actions">
+            <button id="anniversaryDrawerAddButton" class="action-btn primary" type="button">新增纪念日</button>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <dialog id="anniversaryDialog" class="link-dialog anniversary-dialog">
+      <form id="anniversaryForm" method="dialog" class="dialog-card anniversary-dialog-card">
+        <div class="dialog-header">
+          <div>
+            <h2 id="anniversaryDialogTitle">新增纪念日</h2>
+            <p class="anniversary-dialog-subtitle">表单只在需要维护时出现。</p>
+          </div>
+          <button class="icon-button" type="button" id="anniversaryDialogCloseButton" aria-label="关闭">×</button>
+        </div>
+        <input type="hidden" id="anniversaryId">
+        <label>
+          名称
+          <input id="anniversaryTitle" required maxlength="48" placeholder="例如：妈妈生日">
+        </label>
+        <div class="anniversary-calendar-switch" role="tablist" aria-label="日期类型">
+          <button class="is-active" type="button" data-anniversary-calendar="lunar" role="tab" aria-selected="true">农历</button>
+          <button type="button" data-anniversary-calendar="solar" role="tab" aria-selected="false">公历</button>
+        </div>
+        <div id="anniversaryLunarFields" class="anniversary-date-fields">
+          <label>
+            月
+            <input id="anniversaryLunarMonth" required type="number" min="1" max="12" inputmode="numeric" placeholder="4">
+          </label>
+          <label>
+            日
+            <input id="anniversaryLunarDay" required type="number" min="1" max="30" inputmode="numeric" placeholder="28">
+          </label>
+        </div>
+        <div id="anniversarySolarFields" class="anniversary-date-fields" hidden>
+          <label>
+            月
+            <input id="anniversarySolarMonth" type="number" min="1" max="12" inputmode="numeric" placeholder="7">
+          </label>
+          <label>
+            日
+            <input id="anniversarySolarDay" type="number" min="1" max="31" inputmode="numeric" placeholder="5">
+          </label>
+        </div>
+        <label>
+          提前提醒
+          <input id="anniversaryAdvanceDays" required type="number" min="0" max="365" inputmode="numeric" value="7">
+        </label>
+        <div class="dialog-actions anniversary-dialog-actions">
+          <button id="anniversaryDeleteButton" class="ghost danger" type="button" hidden>删除</button>
+          <div>
+            <button id="anniversaryCancelButton" class="ghost" type="button">取消</button>
+            <button class="primary" type="submit">保存</button>
+          </div>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="linkDialog" class="link-dialog">
+      <form id="linkForm" method="dialog" class="dialog-card">
+        <div class="dialog-header">
+          <h2 id="dialogTitle">添加网址</h2>
+          <button class="icon-button" type="button" id="closeDialogButton" aria-label="关闭">×</button>
+        </div>
+        <div id="linkDialogTabs" class="dialog-tabs" role="tablist" aria-label="添加方式">
+          <button class="is-active" type="button" data-link-dialog-tab="manual" role="tab" aria-selected="true">手动填写</button>
+          <button type="button" data-link-dialog-tab="popular" role="tab" aria-selected="false">常用网站</button>
+        </div>
+        <input type="hidden" id="linkId">
+        <section class="link-dialog-panel is-active" data-link-dialog-panel="manual">
+          <label>
+            名称
+            <input id="linkTitle" required maxlength="48" placeholder="例如：Notion">
+          </label>
+          <label>
+            网址
+            <input id="linkUrl" required type="url" placeholder="https://example.com">
+          </label>
+          <label>
+            分组
+            <input id="linkGroup" required maxlength="24" placeholder="例如：工作">
+          </label>
+          <div class="dialog-actions">
+            <button id="deleteLinkButton" class="ghost danger" type="button">删除</button>
+            <div>
+              <button class="ghost" type="button" id="cancelDialogButton">取消</button>
+              <button class="primary" type="submit">保存</button>
+            </div>
+          </div>
+        </section>
+        <section class="link-dialog-panel" data-link-dialog-panel="popular">
+          <div id="popularSiteList" class="popular-site-list" aria-live="polite"></div>
+        </section>
+      </form>
+    </dialog>
+
+    <dialog id="todoArchiveDialog" class="link-dialog">
+      <section class="dialog-card todo-archive-card" aria-label="最近完成的待办">
+        <div class="dialog-header">
+          <h2>最近完成</h2>
+          <button class="icon-button" type="button" id="closeTodoArchiveButton" aria-label="关闭">×</button>
+        </div>
+        <div id="todoArchiveList" class="todo-archive-list" aria-live="polite"></div>
+      </section>
+    </dialog>
+
+    <dialog id="readingShareDialog" class="link-dialog reading-share-dialog">
+      <section class="dialog-card reading-share-card" aria-label="微信读书分享图预览">
+        <div class="dialog-header">
+          <h2>分享图预览</h2>
+          <button class="icon-button" type="button" id="readingShareCloseButton" aria-label="关闭">×</button>
+        </div>
+        <div class="reading-share-preview-frame">
+          <img id="readingSharePreview" class="reading-share-preview" alt="微信读书分享图预览">
+        </div>
+        <div class="dialog-actions">
+          <button id="readingShareCancelButton" class="ghost" type="button">取消</button>
+          <button id="readingShareDownloadButton" class="primary" type="button">下载图片</button>
+        </div>
+      </section>
+    </dialog>
+
+    <script src="src/anniversary-utils.js?v=2"></script>
+    <script src="src/weread-sync-core.js?v=1"></script>
+    <script src="assets/note-editor.bundle.js?v=1"></script>
+    <script src="newtab.js?v=2"></script>
+  </body>
+</html>
