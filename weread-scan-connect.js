@@ -14,12 +14,46 @@
     return match ? match[0] : "";
   }
 
-  function getPageText() {
+  function getPageTextCandidates() {
     const parts = [
       root.document?.body?.innerText,
       root.document?.documentElement?.innerText
     ].filter(Boolean);
-    return parts.join("\n");
+
+    const document = root.document;
+    const selector = [
+      "input",
+      "textarea",
+      "code",
+      "pre",
+      "[data-clipboard-text]",
+      "[data-copy]",
+      "[title]",
+      "[aria-label]"
+    ].join(",");
+
+    const nodes = typeof document?.querySelectorAll === "function" ? Array.from(document.querySelectorAll(selector)) : [];
+    for (const node of nodes) {
+      if (String(node.type || "").toLowerCase() === "password") continue;
+      parts.push(
+        node.value,
+        node.textContent,
+        node.getAttribute?.("data-clipboard-text"),
+        node.getAttribute?.("data-copy"),
+        node.getAttribute?.("title"),
+        node.getAttribute?.("aria-label")
+      );
+    }
+
+    return parts.filter(Boolean);
+  }
+
+  function findPageApiKey() {
+    for (const text of getPageTextCandidates()) {
+      const apiKey = extractWereadApiKey(text);
+      if (apiKey) return apiKey;
+    }
+    return "";
   }
 
   function showStatus(text, tone = "info") {
@@ -70,7 +104,7 @@
   }
 
   function scanPage() {
-    sendCapturedKey(extractWereadApiKey(getPageText()));
+    sendCapturedKey(findPageApiKey());
   }
 
   function scheduleScan() {
@@ -89,6 +123,7 @@
     if (typeof root.MutationObserver === "function" && root.document?.documentElement) {
       const observer = new root.MutationObserver(scheduleScan);
       observer.observe(root.document.documentElement, {
+        attributes: true,
         childList: true,
         subtree: true,
         characterData: true
@@ -99,7 +134,8 @@
   }
 
   root.OhMyTabWereadScanConnect = {
-    extractWereadApiKey
+    extractWereadApiKey,
+    findPageApiKey
   };
 
   start();

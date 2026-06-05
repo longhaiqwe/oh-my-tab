@@ -10,8 +10,19 @@ function assert(condition, message) {
   }
 }
 
+const sentMessages = [];
+const inputWithKey = {
+  tagName: "INPUT",
+  type: "text",
+  value: "wrk-input_123456",
+  textContent: "",
+  getAttribute: () => ""
+};
 const context = {
   console,
+  location: {
+    href: "https://weread.qq.com/r/weread-skills"
+  },
   document: {
     body: {
       append: () => {},
@@ -22,13 +33,15 @@ const context = {
     },
     createElement: () => ({
       style: {},
+      setAttribute: () => {},
       set textContent(value) {
         this._textContent = value;
       },
       get textContent() {
         return this._textContent || "";
       }
-    })
+    }),
+    querySelectorAll: () => [inputWithKey]
   },
   MutationObserver: class {
     observe() {}
@@ -37,7 +50,10 @@ const context = {
   clearTimeout: () => {},
   chrome: {
     runtime: {
-      sendMessage: () => {}
+      sendMessage: (message, callback) => {
+        sentMessages.push(message);
+        callback?.({ ok: true });
+      }
     }
   }
 };
@@ -60,3 +76,7 @@ assert(
 assert(!connector.extractWereadApiKey("登录后显示了不完整的 key wrk-maWh"), "extractor must ignore incomplete short wrk keys.");
 assert(!connector.extractWereadApiKey("wr_vid=123; wr_skey=s_abc"), "extractor must ignore cookies.");
 assert(!connector.extractWereadApiKey("Authorization: Bearer abc"), "extractor must ignore non-wrk tokens.");
+assert(
+  sentMessages.some((message) => message.type === "weread:capturedApiKey" && message.apiKey === "wrk-input_123456"),
+  "content script must capture complete wrk keys from input values and copy attributes."
+);
