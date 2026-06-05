@@ -1,4 +1,4 @@
-runQiamuProviderAutosubmit({
+runOhMyTabProviderAutosubmit({
   id: "kimi",
   composerSelectors: [
     "textarea",

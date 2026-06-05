@@ -1,4 +1,4 @@
-runQiamuProviderAutosubmit({
+runOhMyTabProviderAutosubmit({
   id: "chatgpt",
   composerSelectors: [
     "#prompt-textarea",

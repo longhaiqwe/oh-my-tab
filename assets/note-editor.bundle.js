@@ -18256,7 +18256,7 @@ img.ProseMirror-separator {
       activeEditors.delete(element);
     }
   }
-  window.QiamuNoteEditor = {
+  window.OhMyTabNoteEditor = {
     createNoteEditor,
     destroyNoteEditor
   };

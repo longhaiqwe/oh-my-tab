@@ -1,8 +1,10 @@
 importScripts("src/weread-sync-core.js");
 
-const WEREAD_SYNC_STORAGE_KEY = "qiamuTabWereadSync";
+const WEREAD_SYNC_STORAGE_KEY = "ohmytabWereadSync";
+const LEGACY_WEREAD_SYNC_STORAGE_KEY = "qiamuTabWereadSync";
 const WEREAD_DAILY_ALARM = "ohmytab-weread-daily-sync";
 const WEREAD_KEY_PAGE_URL = "https://weread.qq.com/r/weread-skills";
+const WEREAD_AUTH_ERROR_MESSAGE = "微信读书 API Key 已失效，请重新获取后粘贴同步。";
 let wereadSyncInFlight = null;
 
 chrome.action.onClicked.addListener(() => {
@@ -34,7 +36,12 @@ function createDefaultWereadState() {
 }
 
 async function getWereadState() {
-  const stored = await chrome.storage.local.get(WEREAD_SYNC_STORAGE_KEY);
+  const stored = await chrome.storage.local.get([WEREAD_SYNC_STORAGE_KEY, LEGACY_WEREAD_SYNC_STORAGE_KEY]);
+  if (stored[WEREAD_SYNC_STORAGE_KEY] === undefined && stored[LEGACY_WEREAD_SYNC_STORAGE_KEY] !== undefined) {
+    await chrome.storage.local.set({ [WEREAD_SYNC_STORAGE_KEY]: stored[LEGACY_WEREAD_SYNC_STORAGE_KEY] });
+    await chrome.storage.local.remove(LEGACY_WEREAD_SYNC_STORAGE_KEY);
+    stored[WEREAD_SYNC_STORAGE_KEY] = stored[LEGACY_WEREAD_SYNC_STORAGE_KEY];
+  }
   const state = {
     ...createDefaultWereadState(),
     ...(stored[WEREAD_SYNC_STORAGE_KEY] || {})
@@ -57,6 +64,11 @@ function publicWereadState(state) {
   };
 }
 
+function isWereadAuthError(error) {
+  const message = String(error && error.message ? error.message : error || "");
+  return message.includes("HTTP 401") || (message.includes("API Key") && (message.includes("无效") || message.includes("过期") || message.includes("不完整")));
+}
+
 async function setWereadState(patch) {
   const current = await getWereadState();
   const next = {
@@ -70,10 +82,26 @@ async function setWereadState(patch) {
   return next;
 }
 
+async function getPublicWereadStatus() {
+  const state = await getWereadState();
+  if (state.apiKey && state.error && isWereadAuthError(state.error)) {
+    const next = await setWereadState({
+      apiKey: "",
+      hasKey: false,
+      maskedKey: "",
+      status: "error",
+      error: WEREAD_AUTH_ERROR_MESSAGE,
+      lastReason: state.lastReason || "auth-error"
+    });
+    return publicWereadState(next);
+  }
+  return publicWereadState(state);
+}
+
 async function runWereadSync(reason = "manual") {
   if (wereadSyncInFlight) {
     if (reason === "daily") {
-      return publicWereadState(await getWereadState());
+      return getPublicWereadStatus();
     }
     return wereadSyncInFlight;
   }
@@ -108,9 +136,11 @@ async function runWereadSync(reason = "manual") {
       });
       return publicWereadState(next);
     } catch (error) {
+      const clearKey = isWereadAuthError(error);
       const next = await setWereadState({
+        ...(clearKey ? { apiKey: "", hasKey: false, maskedKey: "" } : {}),
         status: "error",
-        error: error && error.message ? error.message : "微信读书同步失败。",
+        error: clearKey ? WEREAD_AUTH_ERROR_MESSAGE : error && error.message ? error.message : "微信读书同步失败。",
         lastReason: reason
       });
       return publicWereadState(next);
@@ -187,7 +217,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 
   (async () => {
     if (message.type === "weread:getStatus") {
-      return publicWereadState(await getWereadState());
+      return getPublicWereadStatus();
     }
     if (message.type === "weread:saveKeyAndSync") {
       return saveKeyAndSync(message.apiKey);

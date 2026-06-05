@@ -3,19 +3,33 @@
     (typeof chrome !== "undefined" && chrome.i18n?.getMessage?.("extensionName")) || "OhMyTab";
   document.title = extensionTitle;
 
-  const storageKey = "qiamuTabLinks";
-  const settingsKey = "qiamuTabSettings";
-  const mainViewStorageKey = "qiamuTabMainView";
+  const storageKey = "ohmytabLinks";
+  const settingsKey = "ohmytabSettings";
+  const mainViewStorageKey = "ohmytabMainView";
   const deferredStorageKey = "deferred";
-  const faviconCacheKey = "qiamuTabFaviconCache";
-  const historyTitleCacheKey = "qiamuTabHistoryTitleCache";
-  const todoStorageKey = "qiamuTabTodos";
-  const pomodoroStorageKey = "qiamuTabPomodoro";
-  const quoteStorageKey = "qiamuTabQuote";
-  const notesStorageKey = "qiamuTabNotes";
-  const weatherStorageKey = "qiamuTabWeather";
-  const anniversaryStorageKey = "qiamuTabAnniversaries";
-  const wereadSyncStorageKey = "qiamuTabWereadSync";
+  const faviconCacheKey = "ohmytabFaviconCache";
+  const historyTitleCacheKey = "ohmytabHistoryTitleCache";
+  const todoStorageKey = "ohmytabTodos";
+  const pomodoroStorageKey = "ohmytabPomodoro";
+  const quoteStorageKey = "ohmytabQuote";
+  const notesStorageKey = "ohmytabNotes";
+  const weatherStorageKey = "ohmytabWeather";
+  const anniversaryStorageKey = "ohmytabAnniversaries";
+  const wereadSyncStorageKey = "ohmytabWereadSync";
+  const legacyStorageKeys = {
+    [storageKey]: "qiamuTabLinks",
+    [settingsKey]: "qiamuTabSettings",
+    [mainViewStorageKey]: "qiamuTabMainView",
+    [faviconCacheKey]: "qiamuTabFaviconCache",
+    [historyTitleCacheKey]: "qiamuTabHistoryTitleCache",
+    [todoStorageKey]: "qiamuTabTodos",
+    [pomodoroStorageKey]: "qiamuTabPomodoro",
+    [quoteStorageKey]: "qiamuTabQuote",
+    [notesStorageKey]: "qiamuTabNotes",
+    [weatherStorageKey]: "qiamuTabWeather",
+    [anniversaryStorageKey]: "qiamuTabAnniversaries",
+    [wereadSyncStorageKey]: "qiamuTabWereadSync"
+  };
   const musicApiBase = "https://music.qiaomu.ai";
   const amapWeatherKey = "856e4f19ded88246c86f3aff712bb0e7";
   const amapCityAsset = "assets/amap-cities.json";
@@ -26,6 +40,7 @@
   const defaultAnniversaryAdvanceDays = 7;
   const genericWeChatTitles = new Set(["公众号", "微信公众平台", "wechat"]);
   const genericWereadBookNames = new Set(["", "未命名书籍", "公众号", "微信读书", "微信公众平台", "wechat", "该账号已注销"]);
+  const wereadAuthErrorMessage = "微信读书 API Key 已失效，请重新获取后粘贴同步。";
   let wereadLocalSyncInFlight = null;
   const defaultSettings = {
     searchEngine: "",
@@ -987,16 +1002,48 @@
     setAttr("#closeTodoArchiveButton", "aria-label", "close");
   }
 
-  function storageGet(key) {
+  async function storageGet(key) {
+    const keys = Array.isArray(key) ? key : [key];
+    const legacyKeys = keys.map((item) => legacyStorageKeys[item]).filter(Boolean);
+    const stored = await storageRead([...keys, ...legacyKeys]);
+    const migrationPayload = {};
+    const removeKeys = [];
+
+    keys.forEach((item) => {
+      const legacyKey = legacyStorageKeys[item];
+      if (stored[item] === undefined && legacyKey && stored[legacyKey] !== undefined) {
+        stored[item] = stored[legacyKey];
+        migrationPayload[item] = stored[legacyKey];
+        removeKeys.push(legacyKey);
+      }
+    });
+
+    if (Object.keys(migrationPayload).length) {
+      await storageSet(migrationPayload);
+      await storageRemove(removeKeys);
+    }
+
+    return Object.fromEntries(keys.map((item) => [item, stored[item]]));
+  }
+
+  function storageRead(key) {
     if (hasChromeApi("storage")) {
       return chrome.storage.local.get(key);
     }
     const store = getLocalStorage();
+    const keys = Array.isArray(key) ? key : [key];
+    const result = {};
     if (!store) {
-      return Promise.resolve({ [key]: memoryStorage[key] });
+      keys.forEach((item) => {
+        result[item] = memoryStorage[item];
+      });
+      return Promise.resolve(result);
     }
-    const value = store.getItem(key);
-    return Promise.resolve({ [key]: value ? JSON.parse(value) : undefined });
+    keys.forEach((item) => {
+      const value = store.getItem(item);
+      result[item] = value ? JSON.parse(value) : undefined;
+    });
+    return Promise.resolve(result);
   }
 
   function storageSet(payload) {
@@ -1009,6 +1056,24 @@
         store.setItem(key, JSON.stringify(value));
       } else {
         memoryStorage[key] = value;
+      }
+    });
+    return Promise.resolve();
+  }
+
+  function storageRemove(keys) {
+    if (!keys.length) {
+      return Promise.resolve();
+    }
+    if (hasChromeApi("storage") && chrome.storage.local.remove) {
+      return chrome.storage.local.remove(keys);
+    }
+    const store = getLocalStorage();
+    keys.forEach((key) => {
+      if (store) {
+        store.removeItem(key);
+      } else {
+        delete memoryStorage[key];
       }
     });
     return Promise.resolve();
@@ -1186,11 +1251,12 @@
 
   function normalizeWereadSyncState(value = {}) {
     const apiKey = value.apiKey || "";
+    const error = value.error || "";
     return {
       hasKey: Boolean(value.hasKey || apiKey),
       maskedKey: value.maskedKey || (apiKey && wereadSyncCore?.maskApiKey ? wereadSyncCore.maskApiKey(apiKey) : ""),
       status: value.status || "idle",
-      error: value.error || "",
+      error: isWereadAuthError(error) ? wereadAuthErrorMessage : error,
       lastSyncedAt: value.lastSyncedAt || "",
       totalBooks: Number(value.totalBooks || 0),
       totalItems: Number(value.totalItems || 0),
@@ -1216,9 +1282,30 @@
     return next;
   }
 
+  async function getLocalWereadStatus() {
+    const current = await getStoredWereadSyncState();
+    if (current.apiKey && current.error && isWereadAuthError(current.error)) {
+      const next = await setStoredWereadSyncState({
+        apiKey: "",
+        hasKey: false,
+        maskedKey: "",
+        status: "error",
+        error: wereadAuthErrorMessage,
+        lastReason: current.lastReason || "auth-error"
+      });
+      return normalizeWereadSyncState(next);
+    }
+    return normalizeWereadSyncState(current);
+  }
+
   function isMissingWereadReceiver(error) {
     const message = String(error?.message || error || "");
     return message.includes("Could not establish connection") || message.includes("Receiving end does not exist");
+  }
+
+  function isWereadAuthError(error) {
+    const message = String(error?.message || error || "");
+    return message.includes("HTTP 401") || (message.includes("API Key") && (message.includes("无效") || message.includes("过期") || message.includes("不完整")));
   }
 
   async function runLocalWereadSync(reason = "manual") {
@@ -1264,9 +1351,11 @@
         });
         return normalizeWereadSyncState(next);
       } catch (error) {
+        const clearKey = isWereadAuthError(error);
         const next = await setStoredWereadSyncState({
+          ...(clearKey ? { apiKey: "", hasKey: false, maskedKey: "" } : {}),
           status: "error",
-          error: error?.message || "微信读书同步失败。",
+          error: clearKey ? wereadAuthErrorMessage : error?.message || "微信读书同步失败。",
           lastReason: reason
         });
         return normalizeWereadSyncState(next);
@@ -1282,7 +1371,7 @@
 
   async function handleWereadMessageLocally(message) {
     if (message.type === "weread:getStatus") {
-      return { ok: true, state: normalizeWereadSyncState(await getStoredWereadSyncState()) };
+      return { ok: true, state: await getLocalWereadStatus() };
     }
 
     if (message.type === "weread:saveKeyAndSync") {
@@ -4024,7 +4113,7 @@
 
   function renderNotes() {
     elements.notesLayer.querySelectorAll(".sticky-note-editor").forEach((editorElement) => {
-      window.QiamuNoteEditor?.destroyNoteEditor?.(editorElement);
+      window.OhMyTabNoteEditor?.destroyNoteEditor?.(editorElement);
     });
     elements.notesLayer.replaceChildren();
     state.notes.items.forEach((note) => {
@@ -4059,14 +4148,14 @@
   }
 
   function createTiptapEditor(editorMount, noteId, content) {
-    if (!window.QiamuNoteEditor?.createNoteEditor) {
+    if (!window.OhMyTabNoteEditor?.createNoteEditor) {
       editorMount.className = "sticky-note-editor";
       editorMount.contentEditable = "true";
       editorMount.innerHTML = content || "<p></p>";
       editorMount.addEventListener("input", () => updateNoteContent(noteId, editorMount.innerHTML));
       return;
     }
-    window.QiamuNoteEditor.createNoteEditor({
+    window.OhMyTabNoteEditor.createNoteEditor({
       element: editorMount,
       content,
       onUpdate: (html) => updateNoteContent(noteId, html)
@@ -4103,7 +4192,7 @@
   async function closeNote(id) {
     const noteElement = elements.notesLayer.querySelector(`[data-id="${CSS.escape(id)}"] .sticky-note-editor`);
     if (noteElement) {
-      window.QiamuNoteEditor?.destroyNoteEditor?.(noteElement);
+      window.OhMyTabNoteEditor?.destroyNoteEditor?.(noteElement);
     }
     state.notes.items = state.notes.items.filter((note) => note.id !== id);
     await saveNotes();

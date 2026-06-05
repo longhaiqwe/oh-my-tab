@@ -233,13 +233,13 @@
           <div class="reading-weread-sync-state">
             <span id="wereadSyncStatus">未配置</span>
           </div>
-          <p class="weread-connect-copy">打开微信读书官方 Skill 页面，在「获取 API Key」处点击复制 Key，再回到这里粘贴同步。</p>
-          <div class="weread-sync-actions weread-connect-actions">
-            <button id="wereadOpenKeyPageButton" class="primary" type="button">打开微信读书获取 Key</button>
-          </div>
+          <p class="weread-connect-copy">在微信读书官方 Skill 页面复制 API Key 后，回到这里粘贴同步。</p>
           <div id="wereadManualKeyPanel" class="weread-manual-key-panel">
             <label class="weread-key-field">
-              <span>复制 Key 后粘贴到这里</span>
+              <span class="weread-key-label-row">
+                <span>复制 Key 后粘贴到这里</span>
+                <button id="wereadOpenKeyPageButton" class="weread-key-help-button" type="button" aria-label="打开微信读书官方页面获取 API Key" title="打开微信读书官方页面获取 API Key">?</button>
+              </span>
               <input id="wereadApiKey" type="password" placeholder="wrk-..." autocomplete="off" spellcheck="false">
             </label>
             <div class="weread-sync-actions">

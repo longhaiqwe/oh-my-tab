@@ -1,4 +1,4 @@
-function runQiamuProviderAutosubmit(config) {
+function runOhMyTabProviderAutosubmit(config) {
   const params = new URLSearchParams(window.location.search);
   const prompt = params.get("ohmytab");
 

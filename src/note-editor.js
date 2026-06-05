@@ -34,7 +34,7 @@ function destroyNoteEditor(element) {
   }
 }
 
-window.QiamuNoteEditor = {
+window.OhMyTabNoteEditor = {
   createNoteEditor,
   destroyNoteEditor
 };

@@ -31,7 +31,7 @@ assertIncludes(html, 'id="wereadClearKeyButton"', "newtab.html must expose a WeR
 assertIncludes(html, 'id="wereadClearNotesButton"', "newtab.html must expose a local WeRead notes clearing button.");
 assertIncludes(html, "key 和笔记只保存在这台设备", "newtab.html must state the local-only WeRead privacy boundary.");
 
-assertIncludes(js, "qiamuTabWereadSync", "newtab.js must use a local WeRead sync settings key.");
+assertIncludes(js, "ohmytabWereadSync", "newtab.js must use a local WeRead sync settings key.");
 assertIncludes(js, "loadSyncedWereadReviewData", "newtab.js must load user-synced WeRead data before packaged JSON fallback.");
 assertIncludes(js, "handleWereadSaveAndSync", "newtab.js must save the WeRead key and trigger sync from settings.");
 assertIncludes(js, "handleWereadClearKey", "newtab.js must clear the local WeRead key.");
@@ -201,7 +201,7 @@ importScripts("src/weread-sync-core.js");
 Use:
 
 ```js
-const WEREAD_SYNC_STORAGE_KEY = "qiamuTabWereadSync";
+const WEREAD_SYNC_STORAGE_KEY = "ohmytabWereadSync";
 const WEREAD_DAILY_ALARM = "ohmytab-weread-daily-sync";
 let wereadSyncInFlight = null;
 ```
@@ -232,7 +232,7 @@ Handle messages:
 - `weread:clearKey`
 - `weread:clearNotes`
 
-All key/status data lives in `chrome.storage.local` under `qiamuTabWereadSync`.
+All key/status data lives in `chrome.storage.local` under `ohmytabWereadSync`.
 
 - [ ] **Step 6: 实现后台同步**
 

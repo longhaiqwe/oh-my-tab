@@ -4072,6 +4072,37 @@ p {
   font-weight: 700;
 }
 
+.weread-key-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.weread-key-help-button {
+  width: 24px;
+  height: 24px;
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border: 1px solid rgba(57, 101, 95, 0.18);
+  border-radius: 999px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.weread-key-help-button:hover,
+.weread-key-help-button:focus-visible {
+  color: var(--paper);
+  background: var(--accent);
+  outline: none;
+}
+
 .weread-key-field input {
   width: 100%;
   min-height: 40px;
@@ -4093,10 +4124,6 @@ p {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
-}
-
-.weread-connect-actions {
-  grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.9fr);
 }
 
 .weread-sync-actions button,
