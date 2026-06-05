@@ -129,7 +129,7 @@ async function saveKeyAndSync(apiKey) {
   if (!OhMyTabWereadSyncCore.validateApiKey(trimmed)) {
     const next = await setWereadState({
       status: "error",
-      error: "微信读书 API Key 格式无效，应以 wrk- 开头。",
+      error: "微信读书 API Key 格式无效，应以 wrk- 开头并包含完整 key。",
       lastReason: "manual"
     });
     return publicWereadState(next);

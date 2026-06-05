@@ -57,5 +57,6 @@ assert(
   connector.extractWereadApiKey("登录后即可获取 API Key wrk-demo_123") === "wrk-demo_123",
   "extractor must return the exact wrk key."
 );
+assert(!connector.extractWereadApiKey("登录后显示了不完整的 key wrk-maWh"), "extractor must ignore incomplete short wrk keys.");
 assert(!connector.extractWereadApiKey("wr_vid=123; wr_skey=s_abc"), "extractor must ignore cookies.");
 assert(!connector.extractWereadApiKey("Authorization: Bearer abc"), "extractor must ignore non-wrk tokens.");

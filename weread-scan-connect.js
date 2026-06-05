@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  const apiKeyPattern = /\bwrk-[A-Za-z0-9_-]+\b/;
+  const apiKeyPattern = /\bwrk-[A-Za-z0-9_-]{8,}\b/;
   const statusId = "ohmytab-weread-scan-status";
   const officialSkillUrl = "https://weread.qq.com/r/weread-skills";
   const state = {

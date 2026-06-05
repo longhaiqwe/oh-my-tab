@@ -1,6 +1,7 @@
 (function (root) {
   "use strict";
 
+  const apiKeyPattern = /^wrk-[A-Za-z0-9_-]{8,}$/;
   const skillVersion = "1.0.3";
   const gatewayUrl = "https://i.weread.qq.com/api/agent/gateway";
   const databaseName = "ohmytab-weread";
@@ -9,7 +10,7 @@
   const genericWereadBookNames = new Set(["", "未命名书籍", "公众号", "微信读书", "微信公众平台", "wechat", "该账号已注销"]);
 
   function validateApiKey(value) {
-    return /^wrk-[A-Za-z0-9_-]+$/.test(String(value || "").trim());
+    return apiKeyPattern.test(String(value || "").trim());
   }
 
   function maskApiKey(value) {
@@ -122,6 +123,9 @@
     });
 
     if (!response || !response.ok) {
+      if (response && response.status === 401) {
+        throw new Error(`${apiName} 请求失败：微信读书 API Key 无效、已过期或不完整，请重新扫码连接或粘贴完整 key。`);
+      }
       throw new Error(`${apiName} 请求失败：HTTP ${response ? response.status : "unknown"}`);
     }
 

@@ -1291,7 +1291,7 @@
       if (!wereadSyncCore?.validateApiKey?.(apiKey)) {
         const next = await setStoredWereadSyncState({
           status: "error",
-          error: "微信读书 API Key 格式无效，应以 wrk- 开头。",
+          error: "微信读书 API Key 格式无效，应以 wrk- 开头并包含完整 key。",
           lastReason: "manual"
         });
         return { ok: true, state: normalizeWereadSyncState(next) };
@@ -2763,7 +2763,7 @@
       state.wereadSync = {
         ...state.wereadSync,
         status: "error",
-        error: "微信读书 API Key 格式无效，应以 wrk- 开头。"
+        error: "微信读书 API Key 格式无效，应以 wrk- 开头并包含完整 key。"
       };
       renderWereadSettings();
       return;

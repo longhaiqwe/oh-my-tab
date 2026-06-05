@@ -33,6 +33,7 @@ function createJsonResponse(payload, ok = true, status = 200) {
 const core = loadCore();
 
 assert(core.validateApiKey("wrk-demo_key_123"), "wrk- keys must be accepted.");
+assert(!core.validateApiKey("wrk-maWh"), "short incomplete wrk keys must be rejected.");
 assert(!core.validateApiKey("bad-key"), "non-wrk keys must be rejected.");
 assert(core.maskApiKey("wrk-abcdef123456") === "wrk-...3456", "keys must be masked.");
 
@@ -108,7 +109,7 @@ const fetchMock = async (_url, init) => {
   return createJsonResponse({});
 };
 
-await core.callWereadGateway("wrk-test", "/user/notebooks", { count: 100, lastSort: 42 }, fetchMock);
+await core.callWereadGateway("wrk-test-demo", "/user/notebooks", { count: 100, lastSort: 42 }, fetchMock);
 const directBody = sentBodies.at(-1);
 assert(directBody.api_name === "/user/notebooks", "api_name must be top-level.");
 assert(directBody.skill_version === core.skillVersion, "skill_version must be top-level.");
@@ -117,18 +118,24 @@ assert(directBody.lastSort === 42, "lastSort must be top-level.");
 assert(!Object.hasOwn(directBody, "params"), "request body must not wrap params.");
 
 sentBodies.length = 0;
-const notebooks = await core.fetchNotebooks("wrk-test", fetchMock);
+const notebooks = await core.fetchNotebooks("wrk-test-demo", fetchMock);
 assert(notebooks.length === 2, "notebook pagination must collect all pages.");
 assert(sentBodies.some((body) => body.lastSort === 900), "notebook pagination must use lastSort from the previous page.");
 
 sentBodies.length = 0;
 const reviews = await core.fetchReviews(
-  "wrk-test",
+  "wrk-test-demo",
   { bookId: "book-1", book: { title: "Book", author: "Author" } },
   fetchMock
 );
 assert(reviews.length === 2, "review pagination must collect all pages.");
 assert(sentBodies.some((body) => body.synckey === 123), "review pagination must use synckey from the previous page.");
+
+await assertRejects(
+  core.callWereadGateway("wrk-test-demo", "/user/notebooks", {}, async () => createJsonResponse({}, false, 401)),
+  (error) => error.message.includes("API Key") && error.message.includes("重新"),
+  "HTTP 401 must explain that the WeRead API Key is invalid or incomplete."
+);
 
 const normalized = core.normalizeItems([
   {
@@ -145,3 +152,13 @@ const normalized = core.normalizeItems([
 assert(normalized[0].bookName === "Book", "normalized items must preserve bookName.");
 assert(normalized[0].markText === "A sentence", "normalized items must preserve reviewable text.");
 assert(normalized[0].deepLink.includes("weread://"), "normalized items must include a deep link when bookId is present.");
+
+async function assertRejects(promise, predicate, message) {
+  try {
+    await promise;
+  } catch (error) {
+    assert(predicate(error), message);
+    return;
+  }
+  throw new Error(message);
+}
