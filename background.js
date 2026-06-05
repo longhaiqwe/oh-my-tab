@@ -2,7 +2,7 @@ importScripts("src/weread-sync-core.js");
 
 const WEREAD_SYNC_STORAGE_KEY = "qiamuTabWereadSync";
 const WEREAD_DAILY_ALARM = "ohmytab-weread-daily-sync";
-const WEREAD_SCAN_CONNECT_URL = "https://weread.qq.com/r/weread-skills";
+const WEREAD_KEY_PAGE_URL = "https://weread.qq.com/r/weread-skills";
 let wereadSyncInFlight = null;
 
 chrome.action.onClicked.addListener(() => {
@@ -144,18 +144,9 @@ async function saveKeyAndSync(apiKey) {
   return runWereadSync("manual");
 }
 
-async function openWereadScanConnect() {
-  await chrome.tabs.create({ url: WEREAD_SCAN_CONNECT_URL });
+async function openWereadKeyPage() {
+  await chrome.tabs.create({ url: WEREAD_KEY_PAGE_URL });
   return publicWereadState(await getWereadState());
-}
-
-async function saveCapturedApiKey(apiKey) {
-  const current = await getWereadState();
-  const trimmed = String(apiKey || "").trim();
-  if (current.apiKey === trimmed && wereadSyncInFlight) {
-    return publicWereadState(current);
-  }
-  return saveKeyAndSync(trimmed);
 }
 
 async function clearWereadKey() {
@@ -201,11 +192,8 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     if (message.type === "weread:saveKeyAndSync") {
       return saveKeyAndSync(message.apiKey);
     }
-    if (message.type === "weread:openScanConnect") {
-      return openWereadScanConnect();
-    }
-    if (message.type === "weread:capturedApiKey") {
-      return saveCapturedApiKey(message.apiKey);
+    if (message.type === "weread:openKeyPage") {
+      return openWereadKeyPage();
     }
     if (message.type === "weread:syncNow") {
       return runWereadSync("manual");

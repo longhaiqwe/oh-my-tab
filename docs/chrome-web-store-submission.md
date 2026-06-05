@@ -40,7 +40,7 @@ OhMyTab 把 Chrome 新标签页换成一个安静、漂亮、本地优先的个�
 - 读取浏览器收藏夹，作为新标签页侧栏的快速导航。
 - 添加今日待办、便签和番茄钟。
 - 添加关注城市，查看天气和预报。
-- 通过微信读书官方 Skill 页面扫码连接，或手动填写 API Key，把读书划线和想法同步到本地回顾页。
+- 打开微信读书官方 Skill 页面复制 API Key，粘贴后把读书划线和想法同步到本地回顾页。
 - 显示每日一句和轻量音乐模块。
 - 支持中文、英文、浅色/深色主题和壁纸切换。
 
@@ -48,7 +48,7 @@ OhMyTab 把 Chrome 新标签页换成一个安静、漂亮、本地优先的个�
 
 OhMyTab 会读取浏览历史、收藏夹和当前打开的标签页，用于新标签页内的最近访问、分类、本地搜索、收藏夹展示和标签管理。自定义网站、待办、便签、设置和缓存默认保存在浏览器本地。微信读书 API Key 和同步后的读书笔记也只保存在用户本机。插件不会把你的浏览历史、收藏夹、打开的标签页、待办、便签、微信读书 key 或读书笔记上传到 OhMyTab 自己的服务器。
 
-部分功能会在你启用或使用时访问第三方服务：天气、每日一句、图标兜底、音乐模块、微信读书扫码连接和同步，以及用户主动选择的外部搜索或 AI 入口。使用外部入口时，输入的关键词会发送到你选择的服务页面。微信读书扫码连接会打开 `https://weread.qq.com/r/weread-skills`，同步会直接请求 `https://i.weread.qq.com/*`。
+部分功能会在你启用或使用时访问第三方服务：天气、每日一句、图标兜底、音乐模块、微信读书官方 Key 页面和同步，以及用户主动选择的外部搜索或 AI 入口。使用外部入口时，输入的关键词会发送到你选择的服务页面。获取微信读书 Key 会打开 `https://weread.qq.com/r/weread-skills`，同步会直接请求 `https://i.weread.qq.com/*`。
 
 ## Permission Justifications
 
@@ -98,11 +98,7 @@ OhMyTab 会读取浏览历史、收藏夹和当前打开的标签页，用于新
 
 `https://i.weread.qq.com/*`:
 
-用于在用户扫码连接或手动保存自己的微信读书 API Key 后，直接从微信读书 Skill API 同步用户自己的书架、划线、想法和点评。Key 和同步结果不会发送到 OhMyTab 服务器。
-
-`https://weread.qq.com/*`:
-
-用于打开微信读书官方 Skill 页面 `https://weread.qq.com/r/weread-skills`，让用户在官方页面扫码登录，并识别官方页面展示的 `wrk-...` API Key。OhMyTab 不读取微信读书 cookie、二维码图片、账号密码、手机号、验证码或网页登录会话。
+用于在用户保存自己的微信读书 API Key 后，直接从微信读书 Skill API 同步用户自己的书架、划线、想法和点评。Key 和同步结果不会发送到 OhMyTab 服务器。
 
 ## Privacy Fields
 
@@ -110,7 +106,7 @@ Privacy policy:
 
 Publish `docs/privacy-policy.md` to a public URL before submitting. If the GitHub repository is public, a suitable URL after pushing is:
 
-`https://github.com/joeseesun/ohmytab/blob/main/docs/privacy-policy.md`
+`https://github.com/longhaiqwe/oh-my-tab/blob/main/docs/privacy-policy.md`
 
 Single purpose:
 
@@ -118,11 +114,11 @@ OhMyTab 是一个本地优先的新标签页工作台，用于集中管理搜索
 
 Data usage disclosure:
 
-本扩展会读取浏览历史、收藏夹和当前打开的标签页，仅用于在新标签页中展示最近访问、收藏夹、本地搜索、分类结果和标签管理。用户创建的自定义网站、待办、便签和设置保存在浏览器本地。用户启用微信读书扫码连接或同步时，微信读书 API Key 保存在 Chrome 本地扩展存储，同步后的读书笔记保存在本机 IndexedDB。扩展不会出售用户数据，不会将浏览历史、收藏夹、打开的标签页、待办、便签、微信读书 key 或读书笔记用于广告，也不会将这些数据上传到 OhMyTab 自己的服务器。扫码连接只识别微信读书官方 Skill 页面展示的 `wrk-...` key，不读取微信读书 cookie、二维码图片、账号密码、手机号、验证码或网页登录会话。
+本扩展会读取浏览历史、收藏夹和当前打开的标签页，仅用于在新标签页中展示最近访问、收藏夹、本地搜索、分类结果和标签管理。用户创建的自定义网站、待办、便签和设置保存在浏览器本地。用户启用微信读书同步时，微信读书 API Key 保存在 Chrome 本地扩展存储，同步后的读书笔记保存在本机 IndexedDB。扩展不会出售用户数据，不会将浏览历史、收藏夹、打开的标签页、待办、便签、微信读书 key 或读书笔记用于广告，也不会将这些数据上传到 OhMyTab 自己的服务器。OhMyTab 只保存用户主动粘贴的 API Key，不读取微信读书网页、cookie、二维码图片、账号密码、手机号、验证码或网页登录会话。
 
 Remote services disclosure:
 
-天气功能会请求高德天气接口；每日一句会请求一言接口；favicon 回退会请求 Google favicon 服务；音乐模块会请求 OhMyTab Music 公开接口；微信读书扫码连接会打开 `https://weread.qq.com/r/weread-skills`；微信读书同步会直接请求 `https://i.weread.qq.com/*`；当用户主动选择第三方搜索或 AI 入口时，搜索关键词会发送到对应服务页面。
+天气功能会请求高德天气接口；每日一句会请求一言接口；favicon 回退会请求 Google favicon 服务；音乐模块会请求 OhMyTab Music 公开接口；获取微信读书 Key 会打开 `https://weread.qq.com/r/weread-skills`；微信读书同步会直接请求 `https://i.weread.qq.com/*`；当用户主动选择第三方搜索或 AI 入口时，搜索关键词会发送到对应服务页面。
 
 ## Test Instructions
 
@@ -133,7 +129,7 @@ Remote services disclosure:
 5. 添加、完成、删除一个待办。
 6. 点击便签按钮创建便签，输入内容后刷新确认本地保存。
 7. 打开天气面板，搜索并添加一个城市，检查天气卡片。
-8. 在读书回顾页点击微信读书同步设置，检查「扫码连接微信读书」会打开官方 Skill 页面，手动 API Key 兜底、立即同步、清除 key、清除本地笔记控件可用。
+8. 在读书回顾页点击微信读书同步设置，检查「打开微信读书获取 Key」会打开官方 Skill 页面，API Key 粘贴、保存并同步、立即同步、清除 key、清除本地笔记控件可用。
 9. 打开音乐模块，检查曲目加载和播放控件。
 
 ## Required Assets

@@ -50,15 +50,6 @@
         "kimi-autosubmit.js"
       ],
       "run_at": "document_idle"
-    },
-    {
-      "matches": [
-        "https://weread.qq.com/r/weread-skills*"
-      ],
-      "js": [
-        "weread-scan-connect.js"
-      ],
-      "run_at": "document_idle"
     }
   ],
   "permissions": [
@@ -77,8 +68,7 @@
     "https://music.qiaomu.ai/*",
     "https://v1.hitokoto.cn/*",
     "https://restapi.amap.com/*",
-    "https://i.weread.qq.com/*",
-    "https://weread.qq.com/*"
+    "https://i.weread.qq.com/*"
   ],
   "icons": {
     "16": "assets/icon16.png",

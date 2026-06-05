@@ -233,14 +233,13 @@
           <div class="reading-weread-sync-state">
             <span id="wereadSyncStatus">未配置</span>
           </div>
-          <p class="weread-connect-copy">用微信扫码登录官方页面，OhMyTab 会在本机保存连接凭证。</p>
+          <p class="weread-connect-copy">打开微信读书官方 Skill 页面，在「获取 API Key」处点击复制 Key，再回到这里粘贴同步。</p>
           <div class="weread-sync-actions weread-connect-actions">
-            <button id="wereadScanConnectButton" class="primary" type="button">扫码连接微信读书</button>
-            <button id="wereadManualKeyToggle" class="ghost" type="button" aria-expanded="false">我已有 API Key</button>
+            <button id="wereadOpenKeyPageButton" class="primary" type="button">打开微信读书获取 Key</button>
           </div>
-          <div id="wereadManualKeyPanel" class="weread-manual-key-panel" hidden>
+          <div id="wereadManualKeyPanel" class="weread-manual-key-panel">
             <label class="weread-key-field">
-              <span>API Key</span>
+              <span>复制 Key 后粘贴到这里</span>
               <input id="wereadApiKey" type="password" placeholder="wrk-..." autocomplete="off" spellcheck="false">
             </label>
             <div class="weread-sync-actions">
@@ -252,7 +251,7 @@
             <span id="wereadLastSync">尚未同步</span>
             <span id="wereadSyncSummary">0 条笔记</span>
           </div>
-          <p class="weread-sync-privacy">扫码在微信读书官方页面完成；OhMyTab 只保存官方展示的 key，key 和笔记只保存在这台设备上。</p>
+          <p class="weread-sync-privacy">Key 由微信读书官方页面生成；OhMyTab 只保存你粘贴的 key，key 和笔记只保存在这台设备上。</p>
           <div class="weread-danger-row">
             <button id="wereadClearKeyButton" class="ghost danger" type="button">清除 key</button>
             <button id="wereadClearNotesButton" class="ghost danger" type="button">清除本地笔记</button>

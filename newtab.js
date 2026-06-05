@@ -800,8 +800,7 @@
     readingShareCloseButton: document.querySelector("#readingShareCloseButton"),
     readingShareCancelButton: document.querySelector("#readingShareCancelButton"),
     readingShareDownloadButton: document.querySelector("#readingShareDownloadButton"),
-    wereadScanConnectButton: document.querySelector("#wereadScanConnectButton"),
-    wereadManualKeyToggle: document.querySelector("#wereadManualKeyToggle"),
+    wereadOpenKeyPageButton: document.querySelector("#wereadOpenKeyPageButton"),
     wereadManualKeyPanel: document.querySelector("#wereadManualKeyPanel"),
     wereadApiKey: document.querySelector("#wereadApiKey"),
     wereadSaveSyncButton: document.querySelector("#wereadSaveSyncButton"),
@@ -1305,16 +1304,9 @@
       return { ok: true, state: await runLocalWereadSync("manual") };
     }
 
-    if (message.type === "weread:openScanConnect") {
+    if (message.type === "weread:openKeyPage") {
       window.open("https://weread.qq.com/r/weread-skills", "_blank", "noopener");
       return { ok: true, state: normalizeWereadSyncState(await getStoredWereadSyncState()) };
-    }
-
-    if (message.type === "weread:capturedApiKey") {
-      return handleWereadMessageLocally({
-        type: "weread:saveKeyAndSync",
-        apiKey: message.apiKey
-      });
     }
 
     if (message.type === "weread:syncNow") {
@@ -2666,11 +2658,11 @@
     elements.wereadLastSync.textContent = `上次同步：${formatWereadSyncDate(sync.lastSyncedAt)}`;
     elements.wereadSyncSummary.textContent = sync.hasKey
       ? `${sync.totalBooks || 0} 本书 · ${sync.totalItems || 0} 条笔记${sync.maskedKey ? ` · ${sync.maskedKey}` : ""}`
-      : "扫码连接后会立即同步一次";
+      : "复制 Key 后粘贴到这里并同步";
     if (elements.wereadApiKey && document.activeElement !== elements.wereadApiKey) {
       elements.wereadApiKey.placeholder = sync.maskedKey || "wrk-...";
     }
-    elements.wereadScanConnectButton.disabled = syncing;
+    elements.wereadOpenKeyPageButton.disabled = syncing;
     elements.wereadSaveSyncButton.disabled = syncing;
     elements.wereadSyncNowButton.disabled = syncing || !sync.hasKey;
     elements.wereadClearKeyButton.disabled = syncing || !sync.hasKey;
@@ -2695,43 +2687,9 @@
     }
   }
 
-  async function pollWereadScanConnectStatus() {
-    for (let attempt = 0; attempt < 20; attempt += 1) {
-      await new Promise((resolve) => window.setTimeout(resolve, 1500));
-      const response = await sendWereadMessage({ type: "weread:getStatus" });
-      if (!response?.ok || !response.state) continue;
-      const next = normalizeWereadSyncState(response.state);
-      const hasProgress = next.hasKey || next.status !== "idle";
-      if (!hasProgress) continue;
-      state.wereadSync = next;
-      renderWereadSettings();
-      if (["success", "partial", "error"].includes(next.status)) {
-        state.readingReview.loaded = false;
-        await loadWereadReviewData(true);
-        renderReadingReview();
-        return;
-      }
-    }
-
-    if (!state.wereadSync.hasKey && state.wereadSync.status === "syncing") {
-      state.wereadSync = {
-        ...state.wereadSync,
-        status: "idle",
-        error: "还没有检测到连接凭证。请在官方页面扫码登录，或手动粘贴 API Key。"
-      };
-      renderWereadSettings();
-    }
-  }
-
-  async function handleWereadScanConnect(event) {
+  async function handleWereadOpenKeyPage(event) {
     event.preventDefault();
-    state.wereadSync = {
-      ...state.wereadSync,
-      status: "syncing",
-      error: "请在打开的微信读书官方页面扫码登录。"
-    };
-    renderWereadSettings();
-    const response = await sendWereadMessage({ type: "weread:openScanConnect" });
+    const response = await sendWereadMessage({ type: "weread:openKeyPage" });
     if (!response?.ok) {
       state.wereadSync = {
         ...state.wereadSync,
@@ -2741,19 +2699,7 @@
       renderWereadSettings();
       return;
     }
-    pollWereadScanConnectStatus();
-  }
-
-  function toggleWereadManualKeyPanel(event) {
-    event.preventDefault();
-    const panel = elements.wereadManualKeyPanel;
-    if (!panel) return;
-    const willOpen = panel.hidden;
-    panel.hidden = !willOpen;
-    elements.wereadManualKeyToggle?.setAttribute("aria-expanded", String(willOpen));
-    if (willOpen) {
-      window.requestAnimationFrame(() => elements.wereadApiKey?.focus());
-    }
+    window.requestAnimationFrame(() => elements.wereadApiKey?.focus());
   }
 
   async function handleWereadSaveAndSync(event) {
@@ -2802,7 +2748,7 @@
     }
     elements.readingWereadSyncPanel?.setAttribute("aria-hidden", "false");
     window.requestAnimationFrame(() => {
-      elements.wereadScanConnectButton?.focus();
+      elements.wereadOpenKeyPageButton?.focus();
     });
   }
 
@@ -5391,8 +5337,7 @@
     elements.readingShareDownloadButton.addEventListener("click", downloadReadingSharePreview);
     elements.readingShareCloseButton.addEventListener("click", closeReadingSharePreview);
     elements.readingShareCancelButton.addEventListener("click", closeReadingSharePreview);
-    elements.wereadScanConnectButton.addEventListener("click", handleWereadScanConnect);
-    elements.wereadManualKeyToggle.addEventListener("click", toggleWereadManualKeyPanel);
+    elements.wereadOpenKeyPageButton.addEventListener("click", handleWereadOpenKeyPage);
     elements.wereadSaveSyncButton.addEventListener("click", handleWereadSaveAndSync);
     elements.wereadSyncNowButton.addEventListener("click", handleWereadSyncNow);
     elements.wereadClearKeyButton.addEventListener("click", handleWereadClearKey);

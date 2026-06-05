@@ -5,7 +5,7 @@
   "private": true,
   "license": "MIT",
   "scripts": {
-    "test": "node scripts/verify-anniversary-utils.mjs && node scripts/verify-weread-sync-core.mjs && node scripts/verify-weread-scan-connect.mjs && node scripts/verify-weread-background.mjs && node scripts/verify-integration.mjs",
+    "test": "node scripts/verify-anniversary-utils.mjs && node scripts/verify-weread-sync-core.mjs && node scripts/verify-weread-background.mjs && node scripts/verify-integration.mjs",
     "build:notes": "esbuild src/note-editor.js --bundle --format=iife --outfile=assets/note-editor.bundle.js",
     "build:release": "npm run build:notes && node scripts/build-release.mjs"
   },

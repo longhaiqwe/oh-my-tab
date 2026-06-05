@@ -124,7 +124,7 @@
 
     if (!response || !response.ok) {
       if (response && response.status === 401) {
-        throw new Error(`${apiName} 请求失败：微信读书 API Key 无效、已过期或不完整，请重新扫码连接或粘贴完整 key。`);
+        throw new Error(`${apiName} 请求失败：微信读书 API Key 无效、已过期或不完整，请重新获取或粘贴完整 key。`);
       }
       throw new Error(`${apiName} 请求失败：HTTP ${response ? response.status : "unknown"}`);
     }

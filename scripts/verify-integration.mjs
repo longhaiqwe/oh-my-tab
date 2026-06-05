@@ -74,13 +74,13 @@ assert(manifest.permissions.includes("tabs"), "manifest.json must request tabs p
 assert(manifest.permissions.includes("storage"), "manifest.json must keep storage permission for local data.");
 assert(manifest.permissions.includes("alarms"), "manifest.json must request alarms permission for daily WeRead sync.");
 assert(manifest.host_permissions.includes("https://i.weread.qq.com/*"), "manifest.json must allow direct WeRead gateway requests.");
-assert(manifest.host_permissions.includes("https://weread.qq.com/*"), "manifest.json must allow the official WeRead Skill page.");
 assert(
-  manifest.content_scripts.some((script) =>
-    (script.matches || []).includes("https://weread.qq.com/r/weread-skills*") &&
-    (script.js || []).includes("weread-scan-connect.js")
-  ),
-  "manifest.json must inject the WeRead scan connector only on the official Skill page."
+  !manifest.host_permissions.includes("https://weread.qq.com/*"),
+  "manifest.json must not request WeRead page host permission when users manually copy API keys."
+);
+assert(
+  !manifest.content_scripts.some((script) => (script.js || []).includes("weread-scan-connect.js")),
+  "manifest.json must not inject a WeRead page key-capture content script."
 );
 
 assertIncludes(js, "fetchOpenTabs", "newtab.js must include tabout open-tab querying.");
@@ -94,9 +94,12 @@ assertIncludes(js, "if (state.mainView === \"reading\") {\n      prepareReadingR
 assert(!js.includes('console.warn("[ohmytab] WeRead review data unavailable:"'), "newtab.js must not report missing optional WeRead fallback JSON as an extension warning.");
 assert(!js.includes('console.warn("[ohmytab] Synced WeRead data unavailable:"'), "newtab.js must not report transient local WeRead payload reads as extension warnings.");
 assertIncludes(js, "handleWereadSaveAndSync", "newtab.js must save the WeRead key and trigger sync from settings.");
-assertIncludes(html, "扫码连接微信读书", "newtab.html must expose the default WeRead scan connect action.");
-assertIncludes(html, "我已有 API Key", "newtab.html must keep manual API Key fallback.");
-assertIncludes(js, "weread:openScanConnect", "newtab.js must open the official WeRead Skill page.");
+assertIncludes(html, "打开微信读书获取 Key", "newtab.html must guide users to open the official WeRead Skill page.");
+assertIncludes(html, "复制 Key 后粘贴到这里", "newtab.html must tell users to paste the copied WeRead API Key.");
+assert(!html.includes("扫码连接微信读书"), "newtab.html must not expose the old automatic scan-connect action.");
+assert(!html.includes("我已有 API Key"), "newtab.html must not hide the manual API key path behind a fallback toggle.");
+assertIncludes(js, "weread:openKeyPage", "newtab.js must open the official WeRead Skill page for manual key copy.");
+assert(!js.includes("weread:capturedApiKey"), "newtab.js must not accept captured API keys from the WeRead page.");
 assertIncludes(js, "openWereadSyncSettings", "newtab.js must open WeRead sync settings from the reading review page.");
 assert(!js.includes("function openWereadSyncSettings() {\n    openDrawerTab"), "newtab.js must not open the general settings panel for WeRead sync settings.");
 assertIncludes(js, "handleWereadMessageLocally", "newtab.js must fall back to page-local WeRead sync if the background receiver is unavailable.");
@@ -167,11 +170,12 @@ assertIncludes(css, ".reading-share-preview", "newtab.css must style the WeRead 
 assertIncludes(background, 'importScripts("src/weread-sync-core.js")', "background.js must load the shared WeRead sync core.");
 assertIncludes(background, "chrome.alarms.create", "background.js must register daily WeRead sync alarms.");
 assertIncludes(background, "weread:saveKeyAndSync", "background.js must handle save-and-sync messages.");
-assertIncludes(background, "weread:openScanConnect", "background.js must open the official WeRead Skill page.");
-assertIncludes(background, "weread:capturedApiKey", "background.js must accept captured WeRead API keys from the official page.");
+assertIncludes(background, "weread:openKeyPage", "background.js must open the official WeRead Skill page for manual key copy.");
+assert(!background.includes("weread:capturedApiKey"), "background.js must not accept captured WeRead API keys from the official page.");
 assertIncludes(background, "weread:clearKey", "background.js must handle clear-key messages.");
 assertIncludes(background, "weread:clearNotes", "background.js must handle clear-notes messages.");
 
 assertIncludes(privacyPolicy, "微信读书 API Key", "privacy policy must mention local-only WeRead key storage.");
 assertIncludes(privacyPolicy, "i.weread.qq.com", "privacy policy must mention the WeRead gateway request.");
-assertIncludes(privacyPolicy, "weread.qq.com/r/weread-skills", "privacy policy must mention the official WeRead Skill page scan flow.");
+assertIncludes(privacyPolicy, "weread.qq.com/r/weread-skills", "privacy policy must mention the official WeRead Skill page key-copy flow.");
+assert(!privacyPolicy.includes("only detects the `wrk-...` API Key"), "privacy policy must not describe automatic WeRead page key detection.");

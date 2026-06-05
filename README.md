@@ -103,8 +103,7 @@ OhMyTab 需要一些 Chrome 权限才能把浏览器首页做成真正可用的�
 | `https://music.qiaomu.ai/*` | 获取音乐模块的公开曲目、歌词和音频资源。 |
 | `https://v1.hitokoto.cn/*` | 获取首页每日一句。 |
 | `https://restapi.amap.com/*` | 获取天气数据。 |
-| `https://weread.qq.com/*` | 打开微信读书官方 Skill 页面，让用户扫码登录并识别官方展示的 API Key。 |
-| `https://i.weread.qq.com/*` | 用户扫码连接或手动保存 API Key 后，直接同步自己的书架、划线和想法。 |
+| `https://i.weread.qq.com/*` | 用户保存自己的微信读书 API Key 后，直接同步自己的书架、划线和想法。 |
 
 ## 隐私边界
 
@@ -116,7 +115,7 @@ OhMyTab 会读取本机浏览历史、收藏夹和当前打开的标签页，但
 - 每日一句会请求一言接口。
 - 当你主动选择外部搜索或 AI 入口时，输入的关键词会发送到你选择的服务页面。
 - 音乐模块会访问 OhMyTab Music 接口获取公开曲目。
-- 微信读书同步默认会打开官方 Skill 页面让你扫码登录，OhMyTab 只识别页面展示的 `wrk-...` API Key；不会读取微信读书 cookie、二维码图片、微信账号、密码、手机号或验证码。这个 key 只保存在本机 `chrome.storage.local`，同步后的读书笔记只保存在本机 IndexedDB，不会上传到 OhMyTab 服务器。
+- 微信读书同步会引导你打开官方 Skill 页面复制 API Key，再回到 OhMyTab 粘贴保存。OhMyTab 不读取微信读书网页、cookie、二维码图片、微信账号、密码、手机号或验证码。这个 key 只保存在本机 `chrome.storage.local`，同步后的读书笔记只保存在本机 IndexedDB，不会上传到 OhMyTab 服务器。
 
 ## 本地开发
 

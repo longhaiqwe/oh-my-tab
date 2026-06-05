@@ -118,18 +118,16 @@ assert(!Object.hasOwn(saveResponse.state, "apiKey"), "public WeRead state must n
 assert(wrotePayload && wrotePayload.totalItems === 2, "save-and-sync must write the synced payload.");
 assert(storage.qiamuTabWereadSync.apiKey === "wrk-background-demo", "raw key must be stored only in chrome.storage.local state.");
 
-const openScanResponse = await sendMessage({ type: "weread:openScanConnect" });
-assert(openScanResponse.ok, "open scan connect must return ok.");
+const openKeyPageResponse = await sendMessage({ type: "weread:openKeyPage" });
+assert(openKeyPageResponse.ok, "open key page must return ok.");
 assert(
   createdTabs.some((tab) => tab.url === "https://weread.qq.com/r/weread-skills"),
-  "open scan connect must open the official WeRead Skill page."
+  "open key page must open the official WeRead Skill page."
 );
 
 const capturedResponse = await sendMessage({ type: "weread:capturedApiKey", apiKey: "wrk-captured-demo" });
-assert(capturedResponse.ok, "captured API key must be accepted.");
-assert(capturedResponse.state.hasKey, "captured API key must be stored.");
-assert(!Object.hasOwn(capturedResponse.state, "apiKey"), "captured API key response must not expose the raw key.");
-assert(storage.qiamuTabWereadSync.apiKey === "wrk-captured-demo", "captured API key must be stored locally.");
+assert(!capturedResponse.ok, "captured API keys from the WeRead page must not be accepted.");
+assert(storage.qiamuTabWereadSync.apiKey === "wrk-background-demo", "unknown captured-key messages must not replace the stored key.");
 
 const clearKeyResponse = await sendMessage({ type: "weread:clearKey" });
 assert(clearKeyResponse.ok, "clear-key must return ok.");

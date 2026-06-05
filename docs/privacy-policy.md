@@ -13,7 +13,7 @@ OhMyTab may handle the following data only to provide its user-facing features:
 - Open tab metadata: used locally to show the tab-management view, detect duplicate new tab pages, switch to existing tabs, and close tabs only when the user chooses that action.
 - User-created content: custom links, todos, notes, weather city selections, preferences, and cached UI data.
 - Search text: used when the user actively submits a query to the selected search provider or AI entry point.
-- 微信读书 API Key and reading notes: used only when the user enables WeRead sync. Users can scan in on the official WeRead Skill page at `https://weread.qq.com/r/weread-skills`, or manually paste an API Key. The key is used to request the user's own WeRead Skill data, and the notes are used to power the local reading review feature.
+- 微信读书 API Key and reading notes: used only when the user enables WeRead sync. Users can open the official WeRead Skill page at `https://weread.qq.com/r/weread-skills`, copy their API Key, and paste it into OhMyTab. The key is used to request the user's own WeRead Skill data, and the notes are used to power the local reading review feature.
 
 ## Local Storage
 
@@ -31,7 +31,7 @@ Some optional or user-triggered features contact third-party services:
 - Music widget requests are sent to the public OhMyTab Music API.
 - When the user actively selects Google, ChatGPT, Doubao, Kimi, Baidu, Bing, or DuckDuckGo as the search target, the query is sent to the selected service.
 - WeChat article metadata requests may be sent to `mp.weixin.qq.com` to improve titles shown in recent browsing.
-- When the user chooses WeRead scan connect, OhMyTab opens `https://weread.qq.com/r/weread-skills` and only detects the `wrk-...` API Key that the official page displays after the user signs in. OhMyTab does not read WeRead cookies, QR images, account passwords, phone numbers, verification codes, or web login sessions.
+- When the user chooses to get a WeRead API Key, OhMyTab opens `https://weread.qq.com/r/weread-skills` in a normal tab so the user can copy the key from the official page and paste it back into OhMyTab. OhMyTab does not read the WeRead page, cookies, QR images, account passwords, phone numbers, verification codes, or web login sessions.
 - If the user enables WeRead sync, sync requests are sent directly from the extension to `https://i.weread.qq.com/api/agent/gateway` using the user's own local WeRead API Key.
 
 These requests are made over HTTPS. Third-party services may process requests according to their own privacy policies.
@@ -51,7 +51,7 @@ OhMyTab requests Chrome permissions only for its stated new tab dashboard purpos
 - `tabs`: to display and manage currently open tabs locally, including duplicate new tab cleanup and switching to an already open page.
 - `storage`: to save user settings and local dashboard content.
 - `alarms`: to run the optional WeRead sync once per day on the user's device.
-- Host permissions for ChatGPT, Doubao, Kimi, Google, WeChat articles, OhMyTab Music, Hitokoto, Amap, the official WeRead Skill page, and the WeRead gateway: to support the corresponding user-facing integrations.
+- Host permissions for ChatGPT, Doubao, Kimi, Google, WeChat articles, OhMyTab Music, Hitokoto, Amap, and the WeRead gateway: to support the corresponding user-facing integrations.
 
 ## Data Deletion
 

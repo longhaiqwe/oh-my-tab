@@ -18,7 +18,6 @@ const packageFiles = [
   "chatgpt-autosubmit.js",
   "doubao-autosubmit.js",
   "kimi-autosubmit.js",
-  "weread-scan-connect.js",
   "_locales",
   "src",
   "assets"
