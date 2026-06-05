@@ -20,6 +20,7 @@ const solarAnniversary = {
   id: "parents",
   title: "父母结婚纪念日",
   calendar: "solar",
+  startYear: 1998,
   solarMonth: 7,
   solarDay: 5,
   advanceDays: 14,
@@ -37,6 +38,8 @@ const solarOccurrence = utils.getNextAnniversaryOccurrence(solarAnniversary, ref
 assert.equal(solarOccurrence.dateIso, "2026-07-05", "公历 7 月 5 日的下一次发生日应在 2026 年。");
 assert.equal(solarOccurrence.daysUntil, 31);
 assert.equal(solarOccurrence.originalDateLabel, "公历 7 月 5 日");
+assert.equal(solarOccurrence.anniversaryYears, 28, "1998 年开始的纪念日到 2026 年应是第 28 年。");
+assert.equal(solarOccurrence.anniversaryYearLabel, "28 年", "纪念日应展示已持续的年数。");
 
 const mothersDay = {
   id: "builtin-mothers-day",

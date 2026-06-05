@@ -37,6 +37,8 @@ assertIncludes(html, 'id="anniversaryAllButton"', "newtab.html must expose the a
 assertIncludes(html, 'id="anniversaryAddButton"', "newtab.html must expose the add-anniversary dialog button.");
 assertIncludes(html, 'id="anniversaryDrawer"', "newtab.html must include the all-anniversaries drawer.");
 assertIncludes(html, 'id="anniversaryDialog"', "newtab.html must include the add/edit anniversary dialog.");
+assertIncludes(html, 'id="anniversaryStartYear"', "newtab.html must let users enter the anniversary start year.");
+assertIncludes(html, 'placeholder="例如：1998"', "anniversary year input must show an example year.");
 assertIncludes(html, 'id="anniversaryAdvanceDays" required type="number" min="0" max="365" inputmode="numeric" value="7"', "new anniversary reminders must default to 7 days.");
 assertIncludes(html, "src/anniversary-utils.js", "newtab.html must load the anniversary date utility before newtab.js.");
 assertIncludes(html, "newtab.js?v=2", "newtab.html must cache-bust the main new tab script.");
@@ -125,6 +127,10 @@ assertIncludes(js, "builtin-valentines-day", "newtab.js must include Valentine's
 assertIncludes(js, "getAnniversaryItems", "newtab.js must merge built-in public anniversaries with custom anniversaries.");
 assertIncludes(js, "item.builtin", "newtab.js must render built-in anniversaries as read-only items.");
 assertIncludes(js, "loadAnniversaries", "newtab.js must load anniversary reminders.");
+assertIncludes(js, "anniversaryStartYear", "newtab.js must read and write the anniversary start year field.");
+assertIncludes(js, "startYear", "newtab.js must persist each anniversary start year.");
+assertIncludes(js, "getAnniversaryYearText", "newtab.js must render anniversary year counts when a start year is present.");
+assertIncludes(js, "anniversaryYearLabel", "newtab.js must use the shared anniversary year label.");
 assertIncludes(js, "renderAnniversaryReminderView", "newtab.js must render the anniversary reminder tab.");
 assertIncludes(js, "getUpcomingAnniversaryOccurrences", "newtab.js must use the shared anniversary date utility.");
 assertIncludes(js, "openAnniversaryDrawer", "newtab.js must open the all-anniversaries drawer on demand.");

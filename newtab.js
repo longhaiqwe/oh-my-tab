@@ -846,6 +846,7 @@
     anniversaryDialogCloseButton: document.querySelector("#anniversaryDialogCloseButton"),
     anniversaryId: document.querySelector("#anniversaryId"),
     anniversaryTitle: document.querySelector("#anniversaryTitle"),
+    anniversaryStartYear: document.querySelector("#anniversaryStartYear"),
     anniversaryCalendarButtons: document.querySelectorAll("[data-anniversary-calendar]"),
     anniversaryLunarFields: document.querySelector("#anniversaryLunarFields"),
     anniversarySolarFields: document.querySelector("#anniversarySolarFields"),
@@ -3244,6 +3245,16 @@
     return `${daysUntil} 天后`;
   }
 
+  function getAnniversaryYearText(item) {
+    if (!item.anniversaryYearLabel) {
+      return "";
+    }
+    const startYear = Number(item.startYear);
+    return Number.isInteger(startYear) && startYear > 0
+      ? `${startYear} 年起 · ${item.anniversaryYearLabel}`
+      : item.anniversaryYearLabel;
+  }
+
   function renderAnniversaryReminderView() {
     if (!elements.anniversaryUpcomingList) {
       return;
@@ -3309,11 +3320,18 @@
     }
     const title = createElement("h2", "anniversary-feature-title", item.title);
     const details = createElement("div", "anniversary-detail-grid");
-    details.append(
+    const yearText = getAnniversaryYearText(item);
+    const detailItems = [
       createAnniversaryDetail("原始日期", item.originalDateLabel),
-      createAnniversaryDetail("今年日期", item.currentDateLabel),
+      createAnniversaryDetail("今年日期", item.currentDateLabel)
+    ];
+    if (yearText) {
+      detailItems.push(createAnniversaryDetail("年数", yearText));
+    }
+    detailItems.push(
       createAnniversaryDetail("提醒", `${Number(item.advanceDays || 0)} 天前`)
     );
+    details.append(...detailItems);
     content.append(tags, title, details);
     card.append(countdown, content);
     if (!item.builtin) {
@@ -3339,9 +3357,10 @@
     const count = createElement("div", "anniversary-small-count");
     count.append(createElement("strong", "", String(item.daysUntil)), createElement("span", "", "days"));
     const copy = createElement("div", "anniversary-event-copy");
+    const yearText = getAnniversaryYearText(item);
     const noteText = item.builtin
       ? `${item.originalDateLabel} · ${item.currentDateLabel} · 内置节日`
-      : `${item.originalDateLabel} · ${item.currentDateLabel}`;
+      : `${item.originalDateLabel} · ${item.currentDateLabel}${yearText ? ` · ${yearText}` : ""}`;
     copy.append(createElement("h3", "anniversary-event-title", item.title), createElement("p", "anniversary-event-note", noteText));
     card.append(count, copy);
     if (!item.builtin) {
@@ -3362,7 +3381,7 @@
     const query = state.anniversaryQuery.trim().toLowerCase();
     const items = getAllAnniversaryOccurrences().filter((item) => {
       if (!query) return true;
-      return `${item.title} ${item.originalDateLabel} ${item.currentDateLabel}`.toLowerCase().includes(query);
+      return `${item.title} ${item.originalDateLabel} ${item.currentDateLabel} ${getAnniversaryYearText(item)}`.toLowerCase().includes(query);
     });
     elements.anniversaryDrawerList.replaceChildren();
     if (!items.length) {
@@ -3376,9 +3395,10 @@
       }
       row.append(createElement("span", "anniversary-drawer-copy"));
       const copy = row.querySelector(".anniversary-drawer-copy");
+      const yearText = getAnniversaryYearText(item);
       copy.append(
         createElement("strong", "", item.title),
-        createElement("span", "", item.builtin ? `${item.originalDateLabel} · 内置节日` : item.originalDateLabel)
+        createElement("span", "", item.builtin ? `${item.originalDateLabel} · 内置节日` : `${item.originalDateLabel}${yearText ? ` · ${yearText}` : ""}`)
       );
       row.append(createElement("em", "", `${item.daysUntil} 天`));
       if (!item.builtin) {
@@ -3426,6 +3446,7 @@
     elements.anniversaryDialogTitle.textContent = isEditing ? "编辑纪念日" : "新增纪念日";
     elements.anniversaryId.value = item?.id || "";
     elements.anniversaryTitle.value = item?.title || "";
+    elements.anniversaryStartYear.value = item?.startYear || "";
     elements.anniversaryAdvanceDays.value = item?.advanceDays ?? defaultAnniversaryAdvanceDays;
     elements.anniversaryDeleteButton.hidden = !isEditing;
     setAnniversaryCalendar(item?.calendar || "lunar");
@@ -3445,6 +3466,7 @@
     }
     elements.anniversaryForm.reset();
     elements.anniversaryId.value = "";
+    elements.anniversaryStartYear.value = "";
     setAnniversaryCalendar("lunar");
   }
 
@@ -3464,6 +3486,10 @@
       repeat: "yearly",
       updatedAt: Date.now()
     };
+    const startYear = Number(elements.anniversaryStartYear.value);
+    if (Number.isInteger(startYear) && startYear > 0) {
+      item.startYear = startYear;
+    }
     if (state.anniversaryCalendar === "lunar") {
       item.lunarMonth = Number(elements.anniversaryLunarMonth.value);
       item.lunarDay = Number(elements.anniversaryLunarDay.value);

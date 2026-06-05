@@ -170,6 +170,15 @@
     return `公历 ${Number(event.solarMonth)} 月 ${Number(event.solarDay)} 日`;
   }
 
+  function getAnniversaryYears(event, nextDate) {
+    const startYear = Number(event.startYear);
+    if (!Number.isInteger(startYear) || startYear < 1) {
+      return null;
+    }
+    const years = startOfDay(nextDate).getFullYear() - startYear;
+    return years >= 0 ? years : null;
+  }
+
   function getNextAnniversaryOccurrence(event, referenceDate = new Date()) {
     if (!event || event.archived) {
       return null;
@@ -184,6 +193,7 @@
       return null;
     }
     const daysUntil = daysBetween(referenceDate, nextDate);
+    const anniversaryYears = getAnniversaryYears(event, nextDate);
     return {
       ...event,
       date: nextDate,
@@ -191,6 +201,8 @@
       daysUntil,
       originalDateLabel: formatOriginalDateLabel(event),
       currentDateLabel: formatSolarLabel(nextDate),
+      anniversaryYears,
+      anniversaryYearLabel: anniversaryYears === null ? "" : `${anniversaryYears} 年`,
       inReminderWindow: daysUntil <= Number(event.advanceDays || 0)
     };
   }
