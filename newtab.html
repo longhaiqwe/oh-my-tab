@@ -494,33 +494,35 @@
           名称
           <input id="anniversaryTitle" required maxlength="48" placeholder="例如：妈妈生日">
         </label>
-        <label>
-          年份
-          <input id="anniversaryStartYear" type="number" min="1" max="9999" inputmode="numeric" placeholder="例如：1998">
-        </label>
         <div class="anniversary-calendar-switch" role="tablist" aria-label="日期类型">
           <button class="is-active" type="button" data-anniversary-calendar="lunar" role="tab" aria-selected="true">农历</button>
           <button type="button" data-anniversary-calendar="solar" role="tab" aria-selected="false">公历</button>
         </div>
-        <div id="anniversaryLunarFields" class="anniversary-date-fields">
+        <div class="anniversary-date-row">
           <label>
-            月
-            <input id="anniversaryLunarMonth" required type="number" min="1" max="12" inputmode="numeric" placeholder="4">
+            年份
+            <input id="anniversaryStartYear" type="number" min="1" max="9999" inputmode="numeric" placeholder="例如：1998">
           </label>
-          <label>
-            日
-            <input id="anniversaryLunarDay" required type="number" min="1" max="30" inputmode="numeric" placeholder="28">
-          </label>
-        </div>
-        <div id="anniversarySolarFields" class="anniversary-date-fields" hidden>
-          <label>
-            月
-            <input id="anniversarySolarMonth" type="number" min="1" max="12" inputmode="numeric" placeholder="7">
-          </label>
-          <label>
-            日
-            <input id="anniversarySolarDay" type="number" min="1" max="31" inputmode="numeric" placeholder="5">
-          </label>
+          <div id="anniversaryLunarFields" class="anniversary-date-fields">
+            <label>
+              月
+              <input id="anniversaryLunarMonth" required type="number" min="1" max="12" inputmode="numeric" placeholder="4">
+            </label>
+            <label>
+              日
+              <input id="anniversaryLunarDay" required type="number" min="1" max="30" inputmode="numeric" placeholder="28">
+            </label>
+          </div>
+          <div id="anniversarySolarFields" class="anniversary-date-fields" hidden>
+            <label>
+              月
+              <input id="anniversarySolarMonth" type="number" min="1" max="12" inputmode="numeric" placeholder="7">
+            </label>
+            <label>
+              日
+              <input id="anniversarySolarDay" type="number" min="1" max="31" inputmode="numeric" placeholder="5">
+            </label>
+          </div>
         </div>
         <label>
           提前提醒

@@ -41,6 +41,7 @@
   const genericWeChatTitles = new Set(["公众号", "微信公众平台", "wechat"]);
   const genericWereadBookNames = new Set(["", "未命名书籍", "公众号", "微信读书", "微信公众平台", "wechat", "该账号已注销"]);
   const wereadAuthErrorMessage = "微信读书 API Key 已失效，请重新获取后粘贴同步。";
+  let anniversaryDialogPointerStartedOnBackdrop = false;
   let wereadLocalSyncInFlight = null;
   const defaultSettings = {
     searchEngine: "",
@@ -5486,10 +5487,14 @@
     elements.anniversaryDialogCloseButton.addEventListener("click", closeAnniversaryDialog);
     elements.anniversaryCancelButton.addEventListener("click", closeAnniversaryDialog);
     elements.anniversaryDeleteButton.addEventListener("click", deleteActiveAnniversary);
+    elements.anniversaryDialog.addEventListener("pointerdown", (event) => {
+      anniversaryDialogPointerStartedOnBackdrop = event.target === elements.anniversaryDialog;
+    });
     elements.anniversaryDialog.addEventListener("click", (event) => {
-      if (event.target === elements.anniversaryDialog) {
+      if (anniversaryDialogPointerStartedOnBackdrop && event.target === elements.anniversaryDialog) {
         closeAnniversaryDialog();
       }
+      anniversaryDialogPointerStartedOnBackdrop = false;
     });
     elements.anniversaryDialog.addEventListener("cancel", (event) => {
       event.preventDefault();

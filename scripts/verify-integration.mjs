@@ -37,6 +37,7 @@ assertIncludes(html, 'id="anniversaryAllButton"', "newtab.html must expose the a
 assertIncludes(html, 'id="anniversaryAddButton"', "newtab.html must expose the add-anniversary dialog button.");
 assertIncludes(html, 'id="anniversaryDrawer"', "newtab.html must include the all-anniversaries drawer.");
 assertIncludes(html, 'id="anniversaryDialog"', "newtab.html must include the add/edit anniversary dialog.");
+assertIncludes(html, 'class="anniversary-date-row"', "anniversary year, month, and day inputs must share one row.");
 assertIncludes(html, 'id="anniversaryStartYear"', "newtab.html must let users enter the anniversary start year.");
 assertIncludes(html, 'placeholder="例如：1998"', "anniversary year input must show an example year.");
 assertIncludes(html, 'id="anniversaryAdvanceDays" required type="number" min="0" max="365" inputmode="numeric" value="7"', "new anniversary reminders must default to 7 days.");
@@ -131,6 +132,7 @@ assertIncludes(js, "anniversaryStartYear", "newtab.js must read and write the an
 assertIncludes(js, "startYear", "newtab.js must persist each anniversary start year.");
 assertIncludes(js, "getAnniversaryYearText", "newtab.js must render anniversary year counts when a start year is present.");
 assertIncludes(js, "anniversaryYearLabel", "newtab.js must use the shared anniversary year label.");
+assertIncludes(js, "anniversaryDialogPointerStartedOnBackdrop", "newtab.js must only close the anniversary dialog when a backdrop press starts on the backdrop.");
 assertIncludes(js, "renderAnniversaryReminderView", "newtab.js must render the anniversary reminder tab.");
 assertIncludes(js, "getUpcomingAnniversaryOccurrences", "newtab.js must use the shared anniversary date utility.");
 assertIncludes(js, "openAnniversaryDrawer", "newtab.js must open the all-anniversaries drawer on demand.");
@@ -176,6 +178,9 @@ assertIncludes(css, ".anniversary-reminder-view", "newtab.css must style the ann
 assertIncludes(css, ".anniversary-feature-card", "newtab.css must style the primary upcoming anniversary card.");
 assertIncludes(css, ".anniversary-drawer", "newtab.css must style the all-anniversaries drawer.");
 assertIncludes(css, ".anniversary-dialog", "newtab.css must style the add/edit anniversary dialog.");
+assertIncludes(css, ".anniversary-date-row", "newtab.css must keep anniversary year/month/day controls on one row.");
+assertIncludes(css, "overscroll-behavior: contain;", "anniversary dialog must contain touch/trackpad scroll gestures.");
+assertIncludes(css, "touch-action: pan-y;", "anniversary dialog must avoid horizontal swipe closing while editing fields.");
 assertIncludes(css, ".anniversary-tag.rose", "newtab.css must visually distinguish built-in public holidays.");
 assertIncludes(css, ".anniversary-drawer-item.is-readonly", "newtab.css must render built-in anniversary drawer rows as read-only.");
 assertIncludes(css, ".product-credits", "newtab.css must style the product acknowledgement links.");
