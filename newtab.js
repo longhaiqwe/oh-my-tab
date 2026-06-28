@@ -2910,7 +2910,7 @@
     context.textBaseline = textBaseline;
   }
 
-  function drawCanvasTextBlock(context, text, x, y, maxWidth, lineHeight, maxLines) {
+  function drawCanvasTextBlock(context, text, x, y, maxWidth, lineHeight, maxLines, dryRun = false, outInfo = null) {
     const normalized = cleanText(text);
     if (!normalized) return y;
 
@@ -2947,8 +2947,15 @@
       lines[lastIndex] = `${lastLine}…`;
     }
 
+    if (outInfo) {
+      outInfo.truncated = truncated;
+      outInfo.linesCount = lines.length;
+    }
+
     lines.forEach((lineText, index) => {
-      context.fillText(lineText, x, y + index * lineHeight);
+      if (!dryRun) {
+        context.fillText(lineText, x, y + index * lineHeight);
+      }
     });
 
     return y + lines.length * lineHeight;
@@ -2993,7 +3000,73 @@
     const date = formatWereadDate(item.noteTime);
     const quoteText = item.markText || item.noteContent;
     const quoteLength = Array.from(cleanText(quoteText)).length;
-    const quoteFontSize = quoteLength > 170 ? 39 : quoteLength > 92 ? 44 : 52;
+    let quoteFontSize = quoteLength > 170 ? 39 : quoteLength > 92 ? 44 : 52;
+    const minFontSize = 24;
+
+    function testLayout(fontSize) {
+      const lineHeight = Math.round(fontSize * 1.72);
+      const maxLines = item.noteContent && item.markText
+        ? Math.max(5, Math.floor(620 / lineHeight))
+        : Math.max(7, Math.floor(760 / lineHeight));
+
+      context.save();
+      
+      // 1. Title
+      withCanvasTextStyle(context, {
+        font: "600 32px -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif",
+        fillStyle: ink
+      });
+      const tBottom = drawCanvasTextBlock(context, `《${item.bookName}》`, left, 208, contentWidth, 46, 2, true);
+
+      // 2. Detail
+      let dBottom = tBottom;
+      const detail = [item.sourceName || item.bookAuthor, item.chapterName].filter(Boolean).join(" · ");
+      if (detail) {
+        withCanvasTextStyle(context, {
+          font: "500 22px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+          fillStyle: muted
+        });
+        dBottom = drawCanvasTextBlock(context, detail, left, tBottom + 20, contentWidth, 34, 2, true);
+      }
+
+      // 3. Quote
+      withCanvasTextStyle(context, {
+        font: `500 ${fontSize}px Georgia, 'Times New Roman', 'Songti SC', serif`,
+        fillStyle: ink
+      });
+      const quoteOut = {};
+      let testY = drawCanvasTextBlock(context, quoteText, left + 24, 420, contentWidth - 48, lineHeight, maxLines, true, quoteOut);
+      let testContentBottom = testY;
+
+      // 4. Note
+      if (item.noteContent && item.markText) {
+        testY += 70;
+        const noteTop = testY;
+        withCanvasTextStyle(context, {
+          font: "400 31px -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif",
+          fillStyle: "#3a332d"
+        });
+        const noteBottom = drawCanvasTextBlock(context, item.noteContent, left + 28, noteTop + 54, contentWidth - 48, 50, 10, true);
+        testContentBottom = noteBottom;
+      }
+
+      context.restore();
+
+      return {
+        contentBottom: testContentBottom,
+        truncated: !!quoteOut.truncated
+      };
+    }
+
+    while (quoteFontSize > minFontSize) {
+      const layout = testLayout(quoteFontSize);
+      const isHeightOk = (layout.contentBottom + readingShareHeightRange.bottomPadding) <= readingShareHeightRange.max;
+      if (!layout.truncated && isHeightOk) {
+        break;
+      }
+      quoteFontSize -= 2;
+    }
+
     const quoteLineHeight = Math.round(quoteFontSize * 1.72);
     const quoteMaxLines = item.noteContent && item.markText
       ? Math.max(5, Math.floor(620 / quoteLineHeight))
@@ -3065,7 +3138,7 @@
         font: "400 31px -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif",
         fillStyle: "#3a332d"
       });
-      const noteBottom = drawCanvasTextBlock(context, item.noteContent, left + 28, noteTop + 54, contentWidth - 48, 50, 3);
+      const noteBottom = drawCanvasTextBlock(context, item.noteContent, left + 28, noteTop + 54, contentWidth - 48, 50, 10);
 
       context.strokeStyle = accent;
       context.lineWidth = 5;
