@@ -9,7 +9,11 @@
   </head>
   <body>
     <nav id="mainTabs" class="main-tabs" aria-label="功能切换">
-      <button class="main-tab is-active" type="button" data-main-tab="work" aria-pressed="true">
+      <button class="main-tab is-active" type="button" data-main-tab="overview" aria-pressed="true">
+        <span class="main-tab-kicker">Home</span>
+        <span>导览</span>
+      </button>
+      <button class="main-tab" type="button" data-main-tab="work" aria-pressed="false">
         <span class="main-tab-kicker">Daily</span>
         <span>日常工作</span>
       </button>
@@ -27,7 +31,96 @@
       </button>
     </nav>
 
-    <main id="workView" class="canvas main-view" data-main-view="work">
+    <section id="overviewView" class="main-view overview-view" data-main-view="overview">
+      <div class="overview-shell">
+        <header class="overview-header">
+          <div>
+            <h1 id="overviewGreeting">今日导览</h1>
+            <div class="date" id="overviewDateDisplay"></div>
+          </div>
+          <div class="overview-header-actions">
+            <button id="overviewRefreshButton" class="action-btn" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12a7 7 0 1 0 2-5"></path><path d="M5 4v5h5"></path></svg>
+              刷新
+            </button>
+          </div>
+        </header>
+
+        <div class="overview-grid">
+          <article class="overview-card" id="overviewTodoCard" aria-label="今日待办">
+            <div class="overview-card-head">
+              <div class="overview-card-title">
+                <span class="overview-card-icon sage" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M5 5h14v14H5z"></path><path d="M8 12l2.5 2.5L16 9"></path></svg>
+                </span>
+                <h2>今日待办</h2>
+              </div>
+              <span class="overview-card-count" id="overviewTodoCount">0</span>
+            </div>
+            <div class="overview-card-body" id="overviewTodoList" aria-live="polite"></div>
+            <div class="overview-card-foot">
+              <span class="overview-card-note" id="overviewTodoNote"></span>
+              <button class="overview-card-link" type="button" data-overview-goto="work">去处理</button>
+            </div>
+          </article>
+
+          <article class="overview-card" id="overviewAnniversaryCard" aria-label="重要日期提醒">
+            <div class="overview-card-head">
+              <div class="overview-card-title">
+                <span class="overview-card-icon rose" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M4 6h16v14H4z"></path><path d="M4 10h16"></path><path d="M8 3v4"></path><path d="M16 3v4"></path></svg>
+                </span>
+                <h2>重要日期</h2>
+              </div>
+              <span class="overview-card-count" id="overviewAnniversaryCount">0</span>
+            </div>
+            <div class="overview-card-body" id="overviewAnniversaryList" aria-live="polite"></div>
+            <div class="overview-card-foot">
+              <span class="overview-card-note" id="overviewAnniversaryNote"></span>
+              <button class="overview-card-link" type="button" data-overview-goto="anniversary">全部纪念日</button>
+            </div>
+          </article>
+
+          <article class="overview-card" id="overviewTabsCard" aria-label="重复标签清理">
+            <div class="overview-card-head">
+              <div class="overview-card-title">
+                <span class="overview-card-icon amber" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M8 8h11v11H8z"></path><path d="M5 15H4a1 1 0 0 1-1-1V5a2 2 0 0 1 2-2h9a1 1 0 0 1 1 1v1"></path></svg>
+                </span>
+                <h2>重复标签</h2>
+              </div>
+              <span class="overview-card-count" id="overviewTabsCount">0</span>
+            </div>
+            <div class="overview-card-body" id="overviewTabsList" aria-live="polite"></div>
+            <div class="overview-card-foot">
+              <button id="overviewTabsCleanButton" class="overview-card-action" type="button" hidden>一键清理</button>
+              <span class="overview-card-note" id="overviewTabsNote"></span>
+              <button class="overview-card-link" type="button" data-overview-goto="tabs">标签管理</button>
+            </div>
+          </article>
+
+          <article class="overview-card" id="overviewNoteCard" aria-label="笔记精华">
+            <div class="overview-card-head">
+              <div class="overview-card-title">
+                <span class="overview-card-icon slate" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M6 4h12v17l-6-3.4L6 21V4z"></path></svg>
+                </span>
+                <h2>笔记精华</h2>
+              </div>
+              <span class="overview-card-count" id="overviewNoteCount">0</span>
+            </div>
+            <div class="overview-card-body" id="overviewNoteBody" aria-live="polite"></div>
+            <div class="overview-card-foot">
+              <button id="overviewNoteShuffleButton" class="overview-card-action" type="button">换一条</button>
+              <span class="overview-card-note" id="overviewNoteNote"></span>
+              <button class="overview-card-link" type="button" data-overview-goto="reading">去回顾</button>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <main id="workView" class="canvas main-view" data-main-view="work" hidden>
       <div class="grain" aria-hidden="true"></div>
 
       <section class="hero" aria-label="新标签页">

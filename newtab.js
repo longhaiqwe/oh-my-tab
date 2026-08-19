@@ -35,7 +35,11 @@
   const amapCityAsset = "assets/amap-cities.json";
   const anniversaryUtils = window.OhMyTabAnniversaryUtils;
   const wereadSyncCore = window.OhMyTabWereadSyncCore;
-  const mainViewNames = ["work", "tabs", "reading", "anniversary"];
+  const mainViewNames = ["overview", "work", "tabs", "reading", "anniversary"];
+  const defaultMainView = "overview";
+  const overviewTodoLimit = 5;
+  const overviewAnniversaryLimit = 3;
+  const overviewDuplicateLimit = 4;
   const memoryStorage = {};
   const defaultAnniversaryAdvanceDays = 7;
   const genericWeChatTitles = new Set(["公众号", "微信公众平台", "wechat"]);
@@ -612,7 +616,8 @@
   ];
 
   const state = {
-    mainView: "work",
+    mainView: defaultMainView,
+    overview: { noteIndex: -1, duplicateGroups: [], ownTabDupes: 0 },
     links: [],
     bookmarks: [],
     todos: { schemaVersion: 1, updatedAt: Date.now(), items: [] },
@@ -700,6 +705,24 @@
     mainTabButtons: document.querySelectorAll("[data-main-tab]"),
     mainViews: document.querySelectorAll(".main-view"),
     workView: document.querySelector("#workView"),
+    overviewView: document.querySelector("#overviewView"),
+    overviewGreeting: document.querySelector("#overviewGreeting"),
+    overviewDateDisplay: document.querySelector("#overviewDateDisplay"),
+    overviewRefreshButton: document.querySelector("#overviewRefreshButton"),
+    overviewTodoList: document.querySelector("#overviewTodoList"),
+    overviewTodoCount: document.querySelector("#overviewTodoCount"),
+    overviewTodoNote: document.querySelector("#overviewTodoNote"),
+    overviewAnniversaryList: document.querySelector("#overviewAnniversaryList"),
+    overviewAnniversaryCount: document.querySelector("#overviewAnniversaryCount"),
+    overviewAnniversaryNote: document.querySelector("#overviewAnniversaryNote"),
+    overviewTabsList: document.querySelector("#overviewTabsList"),
+    overviewTabsCount: document.querySelector("#overviewTabsCount"),
+    overviewTabsNote: document.querySelector("#overviewTabsNote"),
+    overviewTabsCleanButton: document.querySelector("#overviewTabsCleanButton"),
+    overviewNoteBody: document.querySelector("#overviewNoteBody"),
+    overviewNoteCount: document.querySelector("#overviewNoteCount"),
+    overviewNoteNote: document.querySelector("#overviewNoteNote"),
+    overviewNoteShuffleButton: document.querySelector("#overviewNoteShuffleButton"),
     tabManagerView: document.querySelector("#tabManagerView"),
     readingReviewView: document.querySelector("#readingReviewView"),
     dayLine: document.querySelector("#dayLine"),
@@ -1846,8 +1869,8 @@
 
   async function loadMainView() {
     const stored = await storageGet(mainViewStorageKey);
-    const value = stored[mainViewStorageKey] || "work";
-    state.mainView = mainViewNames.includes(value) ? value : "work";
+    const value = stored[mainViewStorageKey] || defaultMainView;
+    state.mainView = mainViewNames.includes(value) ? value : defaultMainView;
     if (state.mainView === "reading") {
       prepareReadingReviewLoadingState();
     }
@@ -1879,6 +1902,243 @@
     if (viewName === "anniversary") {
       renderAnniversaryReminderView();
     }
+    if (viewName === "overview") {
+      await refreshOverview();
+    }
+  }
+
+  function getOverviewGreeting() {
+    const hour = new Date().getHours();
+    if (hour < 6) return "夜深了";
+    if (hour < 12) return "早上好";
+    if (hour < 14) return "中午好";
+    if (hour < 18) return "下午好";
+    return "晚上好";
+  }
+
+  function createOverviewEmpty(title, text) {
+    const empty = createElement("div", "overview-empty");
+    empty.append(createElement("h3", "", title), createElement("p", "", text));
+    return empty;
+  }
+
+  function renderOverview() {
+    if (!elements.overviewView) return;
+    elements.overviewGreeting.textContent = `${getOverviewGreeting()}，今日导览`;
+    elements.overviewDateDisplay.textContent = new Intl.DateTimeFormat(getLocaleCode(), {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric"
+    }).format(new Date());
+    renderOverviewTodoCard();
+    renderOverviewAnniversaryCard();
+    renderOverviewTabsCard();
+    renderOverviewNoteCard();
+  }
+
+  async function refreshOverview() {
+    if (!elements.overviewView) return;
+    renderOverview();
+    await fetchOpenTabs();
+    renderOverviewTabsCard();
+    if (!state.readingReview.loaded) {
+      await loadWereadReviewData();
+    }
+    renderOverviewNoteCard();
+  }
+
+  function renderOverviewTodoCard() {
+    if (!elements.overviewTodoList) return;
+    const open = state.todos.items.filter((todo) => !todo.archived && !todo.done);
+    const done = state.todos.items.filter((todo) => !todo.archived && todo.done);
+    elements.overviewTodoCount.textContent = String(open.length);
+    elements.overviewTodoList.replaceChildren();
+
+    if (!open.length) {
+      elements.overviewTodoList.append(
+        done.length
+          ? createOverviewEmpty("待办都清空了", "今天的事情已经处理完，保持这个节奏。")
+          : createOverviewEmpty("还没有待办", "在日常工作页写下今天的第一件事。")
+      );
+    } else {
+      [...open]
+        .sort((a, b) => b.createdAt - a.createdAt)
+        .slice(0, overviewTodoLimit)
+        .forEach((todo) => {
+          const row = createElement("div", "overview-todo-item");
+          const check = createElement("button", "overview-todo-check");
+          check.type = "button";
+          check.setAttribute("aria-label", t("markDone"));
+          check.addEventListener("click", () => toggleTodoDone(todo.id));
+          row.append(check, createElement("span", "overview-todo-text", todo.title));
+          elements.overviewTodoList.append(row);
+        });
+    }
+
+    const notes = [];
+    if (open.length > overviewTodoLimit) notes.push(`还有 ${open.length - overviewTodoLimit} 件`);
+    if (done.length) notes.push(`已完成 ${done.length}`);
+    elements.overviewTodoNote.textContent = notes.join(" · ");
+  }
+
+  function renderOverviewAnniversaryCard() {
+    if (!elements.overviewAnniversaryList) return;
+    const upcoming = getAnniversaryOccurrences(overviewAnniversaryLimit);
+    elements.overviewAnniversaryCount.textContent = String(getAnniversaryItems().length);
+    elements.overviewAnniversaryList.replaceChildren();
+
+    if (!upcoming.length) {
+      elements.overviewAnniversaryList.append(
+        createOverviewEmpty("还没有纪念日", "添加生日或结婚纪念日后，最近的提醒会显示在这里。")
+      );
+      elements.overviewAnniversaryNote.textContent = "";
+      return;
+    }
+
+    upcoming.forEach((item) => {
+      const row = createElement("div", `overview-date-item${item.inReminderWindow ? " is-near" : ""}`);
+      const count = createElement("div", "overview-date-count");
+      count.append(
+        createElement("strong", "", String(item.daysUntil)),
+        createElement("span", "", item.daysUntil === 0 ? "今天" : "天")
+      );
+      const copy = createElement("div", "overview-date-copy");
+      copy.append(
+        createElement("span", "overview-date-title", item.title),
+        createElement("span", "overview-date-note", `${getAnniversaryCalendarLabel(item)} · ${item.currentDateLabel}`)
+      );
+      row.append(count, copy);
+      elements.overviewAnniversaryList.append(row);
+    });
+
+    const next = upcoming[0];
+    elements.overviewAnniversaryNote.textContent = `${next.title} ${getAnniversaryDaysLabel(next.daysUntil)}`;
+  }
+
+  function getOverviewDuplicateGroups() {
+    const counts = new Map();
+    getRealTabs().forEach((tab) => {
+      if (!tab.url) return;
+      const entry = counts.get(tab.url) || { url: tab.url, title: tab.title || tab.url, count: 0 };
+      entry.count += 1;
+      counts.set(tab.url, entry);
+    });
+    return [...counts.values()].filter((entry) => entry.count > 1).sort((a, b) => b.count - a.count);
+  }
+
+  function createOverviewTabRow(title, badgeText, url) {
+    const row = createElement("div", "overview-tab-item");
+    const copy = createElement("div", "overview-tab-copy");
+    copy.append(createElement("span", "overview-tab-title", title));
+    if (url) {
+      copy.append(createElement("span", "overview-tab-host", friendlyDomain(getHost(url)) || url));
+    }
+    row.append(copy, createElement("span", "overview-tab-badge", badgeText));
+    return row;
+  }
+
+  function renderOverviewTabsCard() {
+    if (!elements.overviewTabsList) return;
+    const groups = getOverviewDuplicateGroups();
+    const ownExtras = Math.max(0, state.openTabs.filter((tab) => tab.isTabOut).length - 1);
+    const extras = groups.reduce((sum, group) => sum + group.count - 1, 0) + ownExtras;
+    state.overview.duplicateGroups = groups;
+    state.overview.ownTabDupes = ownExtras;
+
+    elements.overviewTabsCount.textContent = String(extras);
+    elements.overviewTabsCleanButton.hidden = extras === 0;
+    elements.overviewTabsCleanButton.textContent = `清理 ${extras} 个重复`;
+    elements.overviewTabsList.replaceChildren();
+
+    if (!extras) {
+      elements.overviewTabsList.append(createOverviewEmpty("没有重复标签", "当前打开的标签页都是独一份。"));
+      elements.overviewTabsNote.textContent = `共 ${state.openTabs.length} 个标签页`;
+      return;
+    }
+
+    if (ownExtras) {
+      elements.overviewTabsList.append(createOverviewTabRow("OhMyTab 新标签页", `${ownExtras} 个多余`));
+    }
+    groups.slice(0, overviewDuplicateLimit).forEach((group) => {
+      elements.overviewTabsList.append(createOverviewTabRow(group.title, `${group.count - 1} 个多余`, group.url));
+    });
+
+    const hidden = Math.max(0, groups.length - overviewDuplicateLimit);
+    elements.overviewTabsNote.textContent = hidden
+      ? `共 ${state.openTabs.length} 个标签页 · 另有 ${hidden} 组`
+      : `共 ${state.openTabs.length} 个标签页`;
+  }
+
+  async function handleOverviewCleanDuplicates() {
+    const urls = state.overview.duplicateGroups.map((group) => group.url);
+    if (!urls.length && !state.overview.ownTabDupes) return;
+    elements.overviewTabsCleanButton.disabled = true;
+    try {
+      if (urls.length) {
+        await closeDuplicateTabs(urls, true);
+      }
+      if (state.overview.ownTabDupes) {
+        await closeTabOutDupes();
+      }
+      showToast("已清理重复标签页");
+    } finally {
+      elements.overviewTabsCleanButton.disabled = false;
+    }
+    renderOverviewTabsCard();
+  }
+
+  function getOverviewNoteItem() {
+    const { items } = state.readingReview;
+    if (!items.length) return null;
+    if (state.overview.noteIndex < 0 || state.overview.noteIndex >= items.length) {
+      state.overview.noteIndex = Math.floor(Math.random() * items.length);
+    }
+    return items[state.overview.noteIndex];
+  }
+
+  function shuffleOverviewNote() {
+    const { items } = state.readingReview;
+    if (items.length < 2) return;
+    let next = state.overview.noteIndex;
+    while (next === state.overview.noteIndex) {
+      next = Math.floor(Math.random() * items.length);
+    }
+    state.overview.noteIndex = next;
+    renderOverviewNoteCard();
+  }
+
+  function renderOverviewNoteCard() {
+    if (!elements.overviewNoteBody) return;
+    const { items, loading, error } = state.readingReview;
+    elements.overviewNoteCount.textContent = String(items.length);
+    elements.overviewNoteShuffleButton.hidden = items.length < 2;
+    elements.overviewNoteBody.replaceChildren();
+
+    if (loading) {
+      elements.overviewNoteBody.append(createOverviewEmpty("正在载入笔记", "正在读取本机同步数据。"));
+      elements.overviewNoteNote.textContent = "";
+      return;
+    }
+
+    const item = getOverviewNoteItem();
+    if (!item) {
+      elements.overviewNoteBody.append(
+        createOverviewEmpty("暂无笔记精华", error || "在读书回顾页配置微信读书同步后，这里会随机推荐一条划线。")
+      );
+      elements.overviewNoteNote.textContent = "";
+      return;
+    }
+
+    elements.overviewNoteBody.append(
+      createElement("blockquote", "overview-note-quote", item.markText || item.noteContent)
+    );
+    if (item.markText && item.noteContent) {
+      elements.overviewNoteBody.append(createElement("p", "overview-note-thought", item.noteContent));
+    }
+    elements.overviewNoteNote.textContent = item.chapterName
+      ? `《${item.bookName}》 · ${item.chapterName}`
+      : `《${item.bookName}》`;
   }
 
   function getTabManagerGreeting() {
@@ -2629,6 +2889,7 @@
 
   async function loadWereadReviewData(force = false) {
     if (state.readingReview.loaded && !force) return;
+    state.overview.noteIndex = -1;
     prepareReadingReviewLoadingState();
     try {
       const syncedData = await loadSyncedWereadReviewData();
@@ -2679,6 +2940,7 @@
   }
 
   function renderReadingReview() {
+    renderOverviewNoteCard();
     if (!elements.readingReviewCard) return;
     const { items, loading, error, activeIndex } = state.readingReview;
     elements.readingProgress.textContent = items.length ? `${activeIndex + 1} / ${items.length}` : "0 / 0";
@@ -3330,6 +3592,7 @@
   }
 
   function renderAnniversaryReminderView() {
+    renderOverviewAnniversaryCard();
     if (!elements.anniversaryUpcomingList) {
       return;
     }
@@ -3759,6 +4022,7 @@
   }
 
   function renderTodos() {
+    renderOverviewTodoCard();
     elements.todoList.replaceChildren();
     elements.todoArchiveButton.replaceChildren(createIconSvg("archive"));
     const visible = [...state.todos.items]
@@ -4911,6 +5175,7 @@
     renderNotes();
     renderWeather();
     renderAnniversaryReminderView();
+    renderOverview();
     renderWereadSettings();
     renderDrawerTabs();
     renderCommandResults();
@@ -5351,7 +5616,7 @@
 
   function applySettings() {
     applyLanguage();
-    document.documentElement.dataset.mainView = state.mainView || "work";
+    document.documentElement.dataset.mainView = state.mainView || defaultMainView;
     document.documentElement.dataset.theme = state.settings.theme || "light";
     document.documentElement.dataset.wallpaper = state.settings.wallpaper || "none";
     elements.todoHome.classList.toggle("is-hidden", !state.settings.showTodos);
@@ -5503,6 +5768,18 @@
       button.addEventListener("click", () => setMainView(button.dataset.mainTab));
     });
     document.addEventListener("click", handleTabManagerAction);
+    document.querySelectorAll("[data-overview-goto]").forEach((button) => {
+      button.addEventListener("click", () => setMainView(button.dataset.overviewGoto));
+    });
+    if (elements.overviewRefreshButton) {
+      elements.overviewRefreshButton.addEventListener("click", () => refreshOverview());
+    }
+    if (elements.overviewTabsCleanButton) {
+      elements.overviewTabsCleanButton.addEventListener("click", handleOverviewCleanDuplicates);
+    }
+    if (elements.overviewNoteShuffleButton) {
+      elements.overviewNoteShuffleButton.addEventListener("click", shuffleOverviewNote);
+    }
     if (elements.archiveToggle) {
       elements.archiveToggle.addEventListener("click", () => {
         elements.archiveBody.hidden = !elements.archiveBody.hidden;
@@ -5917,6 +6194,9 @@
     }
     if (state.mainView === "anniversary") {
       renderAnniversaryReminderView();
+    }
+    if (state.mainView === "overview") {
+      refreshOverview();
     }
   }
 

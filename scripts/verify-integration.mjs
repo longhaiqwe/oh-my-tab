@@ -26,6 +26,7 @@ function assertIncludes(source, needle, message) {
   assert(source.includes(needle), message);
 }
 
+assertIncludes(html, 'data-main-tab="overview"', "newtab.html must expose the overview tab.");
 assertIncludes(html, 'data-main-tab="work"', "newtab.html must expose the OhMyTab daily-work tab.");
 assertIncludes(html, 'data-main-tab="tabs"', "newtab.html must expose the tabout tab-management tab.");
 assertIncludes(html, 'data-main-tab="reading"', "newtab.html must expose the WeRead review tab.");
@@ -33,6 +34,14 @@ assertIncludes(html, 'data-main-tab="anniversary"', "newtab.html must expose the
 assertIncludes(html, 'id="tabManagerView"', "newtab.html must include the tab manager view container.");
 assertIncludes(html, 'id="readingReviewView"', "newtab.html must include the reading review view container.");
 assertIncludes(html, 'id="anniversaryReminderView"', "newtab.html must include the anniversary reminder view container.");
+assertIncludes(html, 'id="overviewView"', "newtab.html must include the overview view container.");
+assertIncludes(html, 'id="overviewTodoCard"', "the overview page must show a todo area.");
+assertIncludes(html, 'id="overviewAnniversaryCard"', "the overview page must show an upcoming-dates area.");
+assertIncludes(html, 'id="overviewTabsCard"', "the overview page must show a duplicate-tab area.");
+assertIncludes(html, 'id="overviewNoteCard"', "the overview page must show a note highlight area.");
+assertIncludes(html, 'id="overviewTabsCleanButton"', "the overview page must offer one-click duplicate tab cleanup.");
+assertIncludes(html, 'id="overviewNoteShuffleButton"', "the overview page must offer another note highlight on demand.");
+assertIncludes(html, 'data-overview-goto="work"', "overview cards must link through to their full feature view.");
 assertIncludes(html, 'id="anniversaryAllButton"', "newtab.html must expose the all-anniversaries drawer button.");
 assertIncludes(html, 'id="anniversaryAddButton"', "newtab.html must expose the add-anniversary dialog button.");
 assertIncludes(html, 'id="anniversaryDrawer"', "newtab.html must include the all-anniversaries drawer.");
@@ -138,7 +147,20 @@ assertIncludes(js, "getUpcomingAnniversaryOccurrences", "newtab.js must use the 
 assertIncludes(js, "openAnniversaryDrawer", "newtab.js must open the all-anniversaries drawer on demand.");
 assertIncludes(js, "openAnniversaryDialog", "newtab.js must open add/edit anniversary forms on demand.");
 assertIncludes(js, "anniversary-feature-edit", "The nearest anniversary card must expose an edit affordance.");
-assertIncludes(js, '["work", "tabs", "reading", "anniversary"]', "newtab.js must treat anniversary as a top-level main view.");
+assertIncludes(js, '["overview", "work", "tabs", "reading", "anniversary"]', "newtab.js must treat overview and anniversary as top-level main views.");
+assertIncludes(js, 'const defaultMainView = "overview"', "newtab.js must land on the overview page by default.");
+assert(
+  !js.includes('stored[mainViewStorageKey] || "work"'),
+  "newtab.js must not fall back to the daily-work view when no main view is stored."
+);
+assertIncludes(js, "function renderOverview()", "newtab.js must render the overview page.");
+assertIncludes(js, "renderOverviewTodoCard", "the overview page must summarise open todos.");
+assertIncludes(js, "renderOverviewAnniversaryCard", "the overview page must summarise upcoming anniversaries.");
+assertIncludes(js, "getOverviewDuplicateGroups", "the overview page must detect duplicate open tabs.");
+assertIncludes(js, "handleOverviewCleanDuplicates", "the overview page must close duplicate tabs in one action.");
+assertIncludes(js, "renderOverviewNoteCard", "the overview page must recommend a WeRead highlight.");
+assertIncludes(js, "shuffleOverviewNote", "the overview page must reshuffle the recommended highlight.");
+assertIncludes(js, "async function refreshOverview()", "the overview page must refresh live tab and note data on demand.");
 assertIncludes(js, "getInitialReadingReviewIndex", "newtab.js must randomize the initial WeRead review item.");
 assertIncludes(js, "activeIndex = getInitialReadingReviewIndex", "newtab.js must not always start WeRead review at the first item.");
 assertIncludes(js, "exportActiveReadingShareImage", "newtab.js must export the active WeRead review as a share image.");
@@ -183,6 +205,8 @@ assertIncludes(css, "overscroll-behavior: contain;", "anniversary dialog must co
 assertIncludes(css, "touch-action: pan-y;", "anniversary dialog must avoid horizontal swipe closing while editing fields.");
 assertIncludes(css, ".anniversary-tag.rose", "newtab.css must visually distinguish built-in public holidays.");
 assertIncludes(css, ".anniversary-drawer-item.is-readonly", "newtab.css must render built-in anniversary drawer rows as read-only.");
+assertIncludes(css, ".overview-grid", "newtab.css must lay the overview page out as a four-area grid.");
+assertIncludes(css, ".overview-card", "newtab.css must style the overview cards.");
 assertIncludes(css, ".product-credits", "newtab.css must style the product acknowledgement links.");
 assertIncludes(css, ".reading-export-button", "newtab.css must style the WeRead share image export button.");
 assertIncludes(css, ".reading-weread-sync-backdrop", "newtab.css must style the WeRead sync drawer backdrop.");

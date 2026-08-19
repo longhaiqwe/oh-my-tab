@@ -202,14 +202,16 @@ body > * {
 
 :root[data-main-view="tabs"],
 :root[data-main-view="reading"],
-:root[data-main-view="anniversary"] {
+:root[data-main-view="anniversary"],
+:root[data-main-view="overview"] {
   --wallpaper: none;
   --wallpaper-opacity: 0;
 }
 
 .tabout-container,
 .reading-review-shell,
-.anniversary-shell {
+.anniversary-shell,
+.overview-shell {
   width: min(1180px, calc(100vw - 48px));
   margin: 0 auto;
   padding: 98px 0 72px;
@@ -217,7 +219,8 @@ body > * {
 
 .tabout-header,
 .reading-review-header,
-.anniversary-header {
+.anniversary-header,
+.overview-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -229,7 +232,8 @@ body > * {
 
 .tabout-header h1,
 .reading-review-header h1,
-.anniversary-header h1 {
+.anniversary-header h1,
+.overview-header h1 {
   margin: 0 0 4px;
   color: var(--ink);
   font-family: Georgia, "Times New Roman", "Songti SC", serif;
@@ -283,6 +287,378 @@ body > * {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.overview-view {
+  min-height: 100vh;
+}
+
+.overview-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.overview-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+@media (max-width: 900px) {
+  .overview-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.overview-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 268px;
+  padding: 20px 22px 16px;
+  background: var(--surface-strong);
+  border: 1px solid var(--warm-gray);
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(26, 22, 19, 0.06);
+}
+
+:root[data-theme="dark"] .overview-card {
+  border-color: var(--list-divider);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.42);
+}
+
+.overview-card-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--list-divider);
+}
+
+.overview-card-title {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.overview-card-title h2 {
+  margin: 0;
+  color: var(--ink);
+  font-family: Georgia, "Times New Roman", "Songti SC", serif;
+  font-size: 18px;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.overview-card-icon {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+}
+
+.overview-card-icon svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.overview-card-icon.sage {
+  color: var(--accent-sage);
+  background: color-mix(in srgb, var(--accent-sage) 14%, transparent);
+}
+
+.overview-card-icon.rose {
+  color: var(--accent-rose);
+  background: color-mix(in srgb, var(--accent-rose) 14%, transparent);
+}
+
+.overview-card-icon.amber {
+  color: var(--accent-amber);
+  background: color-mix(in srgb, var(--accent-amber) 14%, transparent);
+}
+
+.overview-card-icon.slate {
+  color: var(--accent-slate);
+  background: color-mix(in srgb, var(--accent-slate) 14%, transparent);
+}
+
+.overview-card-count {
+  color: var(--ink);
+  font-family: Georgia, "Times New Roman", "Songti SC", serif;
+  font-size: 24px;
+  font-weight: 300;
+  line-height: 1;
+}
+
+.overview-card-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 0 8px;
+  overflow: hidden;
+}
+
+.overview-card-foot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-top: 12px;
+  border-top: 1px solid var(--list-divider);
+}
+
+.overview-card-note {
+  flex: 1;
+  overflow: hidden;
+  color: var(--muted);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.overview-card-link {
+  flex-shrink: 0;
+  padding: 0;
+  color: var(--muted);
+  background: none;
+  border: none;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 12px;
+  font-weight: 650;
+  transition: color 160ms ease;
+}
+
+.overview-card-link::after {
+  content: " →";
+}
+
+.overview-card-link:hover,
+.overview-card-link:focus-visible {
+  color: var(--ink);
+  outline: none;
+}
+
+.overview-card-action {
+  flex-shrink: 0;
+  padding: 5px 11px;
+  color: var(--paper);
+  background: var(--accent);
+  border: none;
+  border-radius: 6px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 12px;
+  font-weight: 650;
+  transition: opacity 160ms ease;
+}
+
+.overview-card-action:hover {
+  opacity: 0.86;
+}
+
+.overview-card-action:disabled {
+  opacity: 0.5;
+}
+
+.overview-empty {
+  margin: auto 0;
+  padding: 6px 0;
+}
+
+.overview-empty h3 {
+  margin: 0 0 6px;
+  color: var(--ink);
+  font-family: Georgia, "Times New Roman", "Songti SC", serif;
+  font-size: 15px;
+  font-weight: 400;
+}
+
+.overview-empty p {
+  margin: 0;
+  color: var(--muted);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.overview-todo-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 0;
+}
+
+.overview-todo-item + .overview-todo-item {
+  border-top: 1px solid var(--list-divider);
+}
+
+.overview-todo-check {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  background: transparent;
+  border: 1.5px solid var(--line);
+  border-radius: 50%;
+  transition: border-color 160ms ease, background 160ms ease;
+}
+
+.overview-todo-check:hover {
+  background: color-mix(in srgb, var(--accent-sage) 22%, transparent);
+  border-color: var(--accent-sage);
+}
+
+.overview-todo-text {
+  overflow: hidden;
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.overview-date-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.overview-date-item + .overview-date-item {
+  border-top: 1px solid var(--list-divider);
+}
+
+.overview-date-count {
+  display: grid;
+  flex-shrink: 0;
+  justify-items: center;
+  width: 42px;
+  padding: 4px 0;
+  border-radius: 6px;
+  background: var(--accent-soft);
+}
+
+.overview-date-item.is-near .overview-date-count {
+  color: var(--accent-rose);
+  background: color-mix(in srgb, var(--accent-rose) 14%, transparent);
+}
+
+.overview-date-count strong {
+  font-family: Georgia, "Times New Roman", "Songti SC", serif;
+  font-size: 17px;
+  font-weight: 400;
+  line-height: 1.1;
+}
+
+.overview-date-count span {
+  color: var(--muted);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 10px;
+}
+
+.overview-date-item.is-near .overview-date-count span {
+  color: inherit;
+}
+
+.overview-date-copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.overview-date-title {
+  overflow: hidden;
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 13px;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.overview-date-note {
+  color: var(--muted);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 11px;
+}
+
+.overview-tab-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.overview-tab-item + .overview-tab-item {
+  border-top: 1px solid var(--list-divider);
+}
+
+.overview-tab-copy {
+  display: grid;
+  flex: 1;
+  gap: 2px;
+  min-width: 0;
+}
+
+.overview-tab-title {
+  overflow: hidden;
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.overview-tab-host {
+  color: var(--muted);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 11px;
+}
+
+.overview-tab-badge {
+  flex-shrink: 0;
+  padding: 3px 8px;
+  color: var(--accent-amber);
+  background: color-mix(in srgb, var(--accent-amber) 12%, transparent);
+  border-radius: 20px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 11px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.overview-note-quote {
+  display: -webkit-box;
+  overflow: hidden;
+  margin: 0;
+  padding-left: 12px;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 6;
+  border-left: 2px solid var(--accent-slate);
+  color: var(--ink);
+  font-family: Georgia, "Times New Roman", "Songti SC", serif;
+  font-size: 15px;
+  line-height: 1.72;
+}
+
+.overview-note-thought {
+  display: -webkit-box;
+  overflow: hidden;
+  margin: 10px 0 0;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  color: var(--muted);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 12px;
+  line-height: 1.6;
 }
 
 .anniversary-reminder-view {
@@ -4645,7 +5021,8 @@ kbd {
 
   .tabout-container,
   .reading-review-shell,
-  .anniversary-shell {
+  .anniversary-shell,
+  .overview-shell {
     width: min(1180px, calc(100vw - var(--main-tabs-clearance) - 48px));
     margin-right: auto;
     margin-left: max(var(--main-tabs-clearance), calc((100vw - 1180px) / 2));
@@ -4674,7 +5051,8 @@ kbd {
 
   .tabout-container,
   .reading-review-shell,
-  .anniversary-shell {
+  .anniversary-shell,
+  .overview-shell {
     width: min(calc(100vw - 28px), 720px);
     padding-top: 292px;
   }
@@ -4682,6 +5060,7 @@ kbd {
   .tabout-header,
   .reading-review-header,
   .anniversary-header,
+  .overview-header,
   .anniversary-footer,
   .tabout-footer,
   .reading-card-footer {
