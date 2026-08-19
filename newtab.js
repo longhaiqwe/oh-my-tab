@@ -84,6 +84,11 @@
       recent: "最近访问",
       bookmarks: "收藏夹",
       settings: "设置",
+      settingsSubtitle: "全局偏好与单页模块开关。",
+      scopeGlobal: "全局",
+      scopeGlobalHint: "对所有页面生效",
+      scopeWork: "日常工作",
+      scopeWorkHint: "仅影响「日常工作」页",
       browserBookmarks: "浏览器收藏",
       last72Hours: "72 小时",
       recentSearch: "搜索最近访问",
@@ -285,6 +290,11 @@
       recent: "Recent",
       bookmarks: "Bookmarks",
       settings: "Settings",
+      settingsSubtitle: "Global preferences and per-page modules.",
+      scopeGlobal: "Global",
+      scopeGlobalHint: "Applies to every page",
+      scopeWork: "Daily",
+      scopeWorkHint: "Only affects the Daily page",
       browserBookmarks: "Browser bookmarks",
       last72Hours: "72 hours",
       recentSearch: "Search recent",
@@ -798,6 +808,9 @@
     linkUrl: document.querySelector("#linkUrl"),
     linkGroup: document.querySelector("#linkGroup"),
     settingsPanel: document.querySelector("#settingsPanel"),
+    settingsDialog: document.querySelector("#settingsDialog"),
+    openSettingsButton: document.querySelector("#openSettingsButton"),
+    settingsDialogCloseButton: document.querySelector("#settingsDialogCloseButton"),
     commandPalette: document.querySelector("#commandPalette"),
     commandInput: document.querySelector("#commandInput"),
     commandResults: document.querySelector("#commandResults"),
@@ -974,7 +987,6 @@
     setAttr(".drawer-tabs", "aria-label", "sidebarViews");
     document.querySelector("[data-drawer-tab='recent']").textContent = t("recent");
     document.querySelector("[data-drawer-tab='bookmarks']").textContent = t("bookmarks");
-    document.querySelector("[data-drawer-tab='settings']").textContent = t("settings");
     setText("#historyPanel h2", "recent");
     setText("#historyPanel .drawer-section-head span", "last72Hours");
     setText("label[for='recentSearch'] .sr-only, label[for='recentSearch']", "recentSearch");
@@ -983,11 +995,19 @@
     setText("#bookmarkSummary", "browserBookmarks");
     setText("label[for='bookmarkSearch'] .sr-only, label[for='bookmarkSearch']", "bookmarkSearch");
     setAttr("#bookmarkSearch", "placeholder", "bookmarkSearch");
-    setText("#settingsPanel h2", "settings");
+    setText("#settingsDialogTitle", "settings");
+    setText("#settingsDialogSubtitle", "settingsSubtitle");
+    setText("#openSettingsButton > span:not(.main-tab-icon)", "settings");
+    setAttr("#settingsDialogCloseButton", "aria-label", "close");
 
-    const settingTitles = Array.from(document.querySelectorAll("#settingsPanel .setting-block > p"));
-    ["language", "search", "modules", "wallpaper", "appearance", "quote", "sync"].forEach((key, index) => {
-      if (settingTitles[index]) settingTitles[index].textContent = t(key);
+    document.querySelectorAll("[data-setting-title]").forEach((node) => {
+      node.textContent = t(node.dataset.settingTitle);
+    });
+    document.querySelectorAll("[data-setting-scope-title]").forEach((node) => {
+      node.textContent = t(node.dataset.settingScopeTitle);
+    });
+    document.querySelectorAll("[data-setting-scope-hint]").forEach((node) => {
+      node.textContent = t(node.dataset.settingScopeHint);
     });
     const languageButtons = document.querySelectorAll("[data-setting='language'] button");
     if (languageButtons[0]) languageButtons[0].textContent = t("autoLanguage");
@@ -6046,6 +6066,14 @@
     });
     document.addEventListener("keydown", handleGlobalKeydown);
     elements.settingsPanel.addEventListener("click", handleSettingsClick);
+    elements.settingsPanel.addEventListener("submit", (event) => event.preventDefault());
+    elements.openSettingsButton.addEventListener("click", openSettingsDialog);
+    elements.settingsDialogCloseButton.addEventListener("click", closeSettingsDialog);
+    elements.settingsDialog.addEventListener("click", (event) => {
+      if (event.target === elements.settingsDialog) {
+        closeSettingsDialog();
+      }
+    });
     elements.musicWidget.addEventListener("click", handleMusicClick);
     elements.musicWidget.addEventListener("input", handleMusicSeek);
     elements.musicAudio.addEventListener("play", () => {
@@ -6445,7 +6473,7 @@
         icon: "settings",
         shortcut: "S",
         keywords: "setting preference 设置",
-        perform: () => openDrawerTab("settings")
+        perform: () => openSettingsDialog()
       },
       {
         id: "weather.open",
@@ -6576,9 +6604,18 @@
     action.perform();
   }
 
-  function openDrawerTab(tabName) {
-    setDrawerTab(tabName);
-    openRecentDrawer();
+  function openSettingsDialog() {
+    closeDrawers();
+    if (!elements.settingsDialog.open) {
+      elements.settingsDialog.showModal();
+    }
+    elements.settingsDialogCloseButton.focus();
+  }
+
+  function closeSettingsDialog() {
+    if (elements.settingsDialog.open) {
+      elements.settingsDialog.close();
+    }
   }
 
   async function setSetting(key, value) {

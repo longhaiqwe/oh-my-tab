@@ -29,6 +29,13 @@
         <span class="main-tab-kicker">Family</span>
         <span>纪念日提醒</span>
       </button>
+      <div class="main-tabs-divider" role="presentation"></div>
+      <button id="openSettingsButton" class="main-tab main-tab-utility" type="button" aria-haspopup="dialog">
+        <span class="main-tab-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.55V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 8.9 19.3a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.7 15a1.7 1.7 0 0 0-1.55-1.03H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.7 8.9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.7a1.7 1.7 0 0 0 1.03-1.55V3a2 2 0 1 1 4 0v.09A1.7 1.7 0 0 0 15.1 4.7a1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.3 9v.01a1.7 1.7 0 0 0 1.55 1.03H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.51 1.03z"></path></svg>
+        </span>
+        <span>设置</span>
+      </button>
     </nav>
 
     <section id="overviewView" class="main-view overview-view" data-main-view="overview">
@@ -430,7 +437,6 @@
       <nav class="drawer-tabs" aria-label="侧栏视图">
         <button class="drawer-tab" type="button" data-drawer-tab="recent">最近访问</button>
         <button class="drawer-tab is-active" type="button" data-drawer-tab="bookmarks">收藏夹</button>
-        <button class="drawer-tab" type="button" data-drawer-tab="settings">设置</button>
       </nav>
       <section id="historyPanel" class="drawer-panel" data-panel="recent">
         <div class="drawer-section-head">
@@ -455,84 +461,6 @@
         <div id="bookmarkList" class="bookmark-list" aria-live="polite"></div>
       </section>
 
-      <form id="settingsPanel" class="settings-panel drawer-panel" data-panel="settings">
-        <h2>设置</h2>
-        <section class="setting-block">
-          <p>语言</p>
-          <div class="choice-grid language-grid" data-setting="language">
-            <button type="button" data-value="auto">跟随浏览器</button>
-            <button type="button" data-value="zh">中文</button>
-            <button type="button" data-value="en">English</button>
-          </div>
-        </section>
-        <section class="setting-block">
-          <p>搜索</p>
-          <div class="choice-grid" data-setting="searchEngine">
-            <button type="button" data-value="google">Google</button>
-            <button type="button" data-value="chatgpt">ChatGPT</button>
-            <button type="button" data-value="doubao">豆包</button>
-            <button type="button" data-value="kimi">Kimi</button>
-            <button type="button" data-value="baidu">百度</button>
-            <button type="button" data-value="bing">Bing</button>
-            <button type="button" data-value="duckduckgo">DuckDuckGo</button>
-            <button type="button" data-value="todo">Todo</button>
-          </div>
-        </section>
-        <section class="setting-block">
-          <p>模块</p>
-          <div class="toggle-grid">
-            <button id="showTodos" type="button" data-toggle="showTodos">待办</button>
-            <button id="showMusicWidget" type="button" data-toggle="showMusicWidget">音乐</button>
-            <button id="showCustomLinks" type="button" data-toggle="showCustomLinks">自定义收藏</button>
-          </div>
-        </section>
-        <section class="setting-block">
-          <p>壁纸</p>
-          <div class="wallpaper-grid" data-setting="wallpaper">
-            <button type="button" data-value="none">
-              <span class="wallpaper-swatch wallpaper-none"></span>
-              默认
-            </button>
-            <button type="button" data-value="mist">
-              <span class="wallpaper-swatch wallpaper-mist"></span>
-              海雾
-            </button>
-            <button type="button" data-value="dune">
-              <span class="wallpaper-swatch wallpaper-dune"></span>
-              暖沙
-            </button>
-            <button type="button" data-value="rain">
-              <span class="wallpaper-swatch wallpaper-rain"></span>
-              雨窗
-            </button>
-            <button type="button" data-value="blue">
-              <span class="wallpaper-swatch wallpaper-blue"></span>
-              夜色
-            </button>
-          </div>
-        </section>
-        <section class="setting-block">
-          <p>外观</p>
-          <div class="choice-grid" data-setting="theme">
-            <button type="button" data-value="light">浅色</button>
-            <button type="button" data-value="dark">深色</button>
-          </div>
-        </section>
-        <section class="setting-block">
-          <p>好句</p>
-          <div class="choice-grid" data-setting="showQuote">
-            <button id="showQuoteOn" type="button" data-value="true">开</button>
-            <button id="showQuoteOff" type="button" data-value="false">关</button>
-          </div>
-        </section>
-        <section class="setting-block">
-          <p>同步</p>
-          <div class="settings-row">
-            <span>本地优先</span>
-            <span class="settings-pill">待接入</span>
-          </div>
-        </section>
-      </form>
     </aside>
     <div id="drawerScrim" class="drawer-scrim" hidden></div>
 
@@ -692,6 +620,108 @@
           <button id="readingShareCancelButton" class="ghost" type="button">取消</button>
           <button id="readingShareDownloadButton" class="primary" type="button">下载图片</button>
         </div>
+      </section>
+    </dialog>
+
+    <dialog id="settingsDialog" class="link-dialog settings-dialog">
+      <section class="dialog-card settings-dialog-card" aria-labelledby="settingsDialogTitle">
+        <div class="dialog-header">
+          <div>
+            <h2 id="settingsDialogTitle">设置</h2>
+            <p id="settingsDialogSubtitle" class="settings-dialog-subtitle">全局偏好与单页模块开关。</p>
+          </div>
+          <button class="icon-button" type="button" id="settingsDialogCloseButton" aria-label="关闭">×</button>
+        </div>
+        <form id="settingsPanel" class="settings-panel">
+          <section class="setting-group" data-setting-scope="global">
+            <header class="setting-group-head">
+              <h3 data-setting-scope-title="scopeGlobal">全局</h3>
+              <p data-setting-scope-hint="scopeGlobalHint">对所有页面生效</p>
+            </header>
+            <section class="setting-block">
+              <p data-setting-title="language">语言</p>
+              <div class="choice-grid language-grid" data-setting="language">
+                <button type="button" data-value="auto">跟随浏览器</button>
+                <button type="button" data-value="zh">中文</button>
+                <button type="button" data-value="en">English</button>
+              </div>
+            </section>
+            <section class="setting-block">
+              <p data-setting-title="appearance">外观</p>
+              <div class="choice-grid" data-setting="theme">
+                <button type="button" data-value="light">浅色</button>
+                <button type="button" data-value="dark">深色</button>
+              </div>
+            </section>
+            <section class="setting-block">
+              <p data-setting-title="wallpaper">壁纸</p>
+              <div class="wallpaper-grid" data-setting="wallpaper">
+                <button type="button" data-value="none">
+                  <span class="wallpaper-swatch wallpaper-none"></span>
+                  默认
+                </button>
+                <button type="button" data-value="mist">
+                  <span class="wallpaper-swatch wallpaper-mist"></span>
+                  海雾
+                </button>
+                <button type="button" data-value="dune">
+                  <span class="wallpaper-swatch wallpaper-dune"></span>
+                  暖沙
+                </button>
+                <button type="button" data-value="rain">
+                  <span class="wallpaper-swatch wallpaper-rain"></span>
+                  雨窗
+                </button>
+                <button type="button" data-value="blue">
+                  <span class="wallpaper-swatch wallpaper-blue"></span>
+                  夜色
+                </button>
+              </div>
+            </section>
+            <section class="setting-block">
+              <p data-setting-title="sync">同步</p>
+              <div class="settings-row">
+                <span>本地优先</span>
+                <span class="settings-pill">待接入</span>
+              </div>
+            </section>
+          </section>
+
+          <section class="setting-group" data-setting-scope="work">
+            <header class="setting-group-head">
+              <h3 data-setting-scope-title="scopeWork">日常工作</h3>
+              <p data-setting-scope-hint="scopeWorkHint">仅影响「日常工作」页</p>
+            </header>
+            <section class="setting-block">
+              <p data-setting-title="search">搜索</p>
+              <div class="choice-grid" data-setting="searchEngine">
+                <button type="button" data-value="google">Google</button>
+                <button type="button" data-value="chatgpt">ChatGPT</button>
+                <button type="button" data-value="doubao">豆包</button>
+                <button type="button" data-value="kimi">Kimi</button>
+                <button type="button" data-value="baidu">百度</button>
+                <button type="button" data-value="bing">Bing</button>
+                <button type="button" data-value="duckduckgo">DuckDuckGo</button>
+                <button type="button" data-value="todo">Todo</button>
+              </div>
+            </section>
+            <section class="setting-block">
+              <p data-setting-title="modules">模块</p>
+              <div class="toggle-grid">
+                <button id="showTodos" type="button" data-toggle="showTodos">待办</button>
+                <button id="showMusicWidget" type="button" data-toggle="showMusicWidget">音乐</button>
+                <button id="showCustomLinks" type="button" data-toggle="showCustomLinks">自定义收藏</button>
+              </div>
+            </section>
+            <section class="setting-block">
+              <p data-setting-title="quote">好句</p>
+              <div class="choice-grid" data-setting="showQuote">
+                <button id="showQuoteOn" type="button" data-value="true">开</button>
+                <button id="showQuoteOff" type="button" data-value="false">关</button>
+              </div>
+            </section>
+          </section>
+        </form>
       </section>
     </dialog>
 

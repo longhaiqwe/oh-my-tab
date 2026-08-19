@@ -58,7 +58,9 @@
   --panel: rgba(11, 14, 10, 0.92);
   --accent: #f8f3e8;
   --accent-soft: rgba(248, 243, 232, 0.18);
-  --shadow: 0 22px 70px rgba(0, 0, 0, 0.48);
+  --shadow: rgba(0, 0, 0, 0.5);
+  --warm-gray: rgba(248, 243, 232, 0.16);
+  --card-bg: #11140e;
 }
 
 * {
@@ -190,6 +192,34 @@ body > * {
   white-space: nowrap;
 }
 
+.main-tabs-divider {
+  height: 1px;
+  margin: 1px 5px;
+  background: color-mix(in srgb, var(--warm-gray) 70%, transparent);
+}
+
+.main-tab-utility {
+  grid-template-columns: 16px minmax(0, 1fr);
+  gap: 9px;
+  align-items: center;
+  min-height: 42px;
+  padding: 10px 13px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.main-tab-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+}
+
+.main-tab-utility:hover .main-tab-icon,
+.main-tab-utility:focus-visible .main-tab-icon {
+  color: var(--ink);
+}
+
 .main-view[hidden] {
   display: none !important;
 }
@@ -198,14 +228,6 @@ body > * {
 :root:not([data-main-view="work"]) .drawer-edge,
 :root:not([data-main-view="work"]) .weather-edge {
   display: none;
-}
-
-:root[data-main-view="tabs"],
-:root[data-main-view="reading"],
-:root[data-main-view="anniversary"],
-:root[data-main-view="overview"] {
-  --wallpaper: none;
-  --wallpaper-opacity: 0;
 }
 
 .tabout-container,
@@ -723,6 +745,13 @@ body > * {
   border-radius: 8px;
 }
 
+:root[data-theme="dark"] .anniversary-countdown {
+  background:
+    linear-gradient(135deg, rgba(200, 113, 58, 0.14), rgba(90, 122, 98, 0.07)),
+    var(--card-bg);
+  border-color: rgba(200, 113, 58, 0.28);
+}
+
 .anniversary-countdown-label {
   color: var(--muted);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -811,6 +840,11 @@ body > * {
   background: rgba(248, 245, 240, 0.75);
   border: 1px solid rgba(232, 226, 218, 0.86);
   border-radius: 6px;
+}
+
+:root[data-theme="dark"] .anniversary-detail {
+  background: rgba(248, 243, 232, 0.06);
+  border-color: var(--warm-gray);
 }
 
 .anniversary-detail span {
@@ -1038,6 +1072,10 @@ body > * {
   font-size: 13px;
 }
 
+:root[data-theme="dark"] .anniversary-search-input {
+  background: rgba(248, 243, 232, 0.06);
+}
+
 .anniversary-drawer-list {
   display: grid;
 }
@@ -1127,6 +1165,10 @@ body > * {
   background: rgba(248, 245, 240, 0.72);
   border: 1px solid var(--warm-gray);
   border-radius: 6px;
+}
+
+:root[data-theme="dark"] .anniversary-calendar-switch {
+  background: rgba(248, 243, 232, 0.06);
 }
 
 .anniversary-calendar-switch button {
@@ -1814,6 +1856,13 @@ body > * {
   background-image:
     radial-gradient(circle at 50% 18%, rgba(248, 243, 232, 0.06), transparent 32%),
     linear-gradient(180deg, rgba(4, 6, 5, 0.08), rgba(4, 6, 5, 0.14));
+}
+
+/* Wallpapers are bright, so dark mode needs a real scrim to keep light text legible. */
+:root[data-theme="dark"]:not([data-wallpaper="none"]) body::after {
+  background-image:
+    radial-gradient(circle at 50% 18%, rgba(248, 243, 232, 0.05), transparent 32%),
+    linear-gradient(180deg, rgba(4, 6, 5, 0.74), rgba(4, 6, 5, 0.82));
 }
 
 button,
@@ -3055,7 +3104,7 @@ p {
 }
 
 .todo-check.is-done {
-  color: #fff;
+  color: var(--paper);
   background: var(--accent);
   border-color: var(--accent);
 }
@@ -3440,7 +3489,7 @@ p {
 
 .drawer-tabs {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   grid-row: 1;
   grid-column: 1;
   gap: 4px;
@@ -3621,6 +3670,29 @@ p {
   border-color: color-mix(in srgb, var(--weather-soft) 20%, var(--line));
   box-shadow: 0 18px 44px rgba(0, 0, 0, 0.28);
   --weather-muted-local: var(--muted);
+}
+
+/* The weather sub-surfaces are white overlays tuned for the light card. */
+:root[data-theme="dark"] .weather-status-pill,
+:root[data-theme="dark"] .weather-card-foot button {
+  background: rgba(248, 243, 232, 0.12);
+  border-color: rgba(248, 243, 232, 0.18);
+}
+
+:root[data-theme="dark"] .weather-remove {
+  background: rgba(248, 243, 232, 0.1);
+}
+
+:root[data-theme="dark"] .weather-comfort-card {
+  background: rgba(248, 243, 232, 0.08);
+}
+
+:root[data-theme="dark"] .weather-stat {
+  background: rgba(248, 243, 232, 0.07);
+}
+
+:root[data-theme="dark"] .weather-forecast-day {
+  background: rgba(248, 243, 232, 0.06);
 }
 
 .weather-card-sun {
@@ -4311,6 +4383,65 @@ p {
   padding-bottom: 0;
 }
 
+.settings-dialog {
+  width: min(720px, calc(100vw - 32px));
+}
+
+.settings-dialog-card {
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.settings-dialog-subtitle {
+  margin: 3px 0 0;
+  color: var(--muted);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 12px;
+}
+
+.settings-dialog-card .language-grid {
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.settings-dialog-card .settings-panel {
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  align-items: start;
+  min-height: 0;
+  padding-right: 4px;
+  overflow-y: auto;
+}
+
+.setting-group {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+}
+
+.setting-group-head {
+  display: grid;
+  gap: 2px;
+  padding: 0 2px;
+}
+
+.setting-group-head h3 {
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.setting-group-head p {
+  color: var(--muted);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+@media (max-width: 640px) {
+  .settings-dialog-card .settings-panel {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 .setting-block {
   display: grid;
   gap: 10px;
@@ -4749,7 +4880,7 @@ kbd {
   background: var(--surface-strong);
   border: 1px solid var(--line);
   border-radius: 14px;
-  box-shadow: var(--shadow);
+  box-shadow: 0 24px 60px var(--shadow);
 }
 
 .dialog-header,
@@ -4928,9 +5059,19 @@ kbd {
 }
 
 .primary {
-  color: #fff;
+  color: var(--paper);
   background: var(--accent);
   border-color: var(--accent);
+}
+
+/* --accent flips to near-white in dark mode, which turns every primary fill into
+   a glaring cream slab. Use the amber accent the rest of the dark UI already uses. */
+:root[data-theme="dark"] .primary,
+:root[data-theme="dark"] .action-btn.primary,
+:root[data-theme="dark"] .todo-check.is-done {
+  color: var(--paper);
+  background: var(--accent-amber);
+  border-color: var(--accent-amber);
 }
 
 .danger {
@@ -5049,6 +5190,10 @@ kbd {
     text-align: left;
   }
 
+  .main-tab-utility {
+    min-height: 40px;
+  }
+
   .tabout-container,
   .reading-review-shell,
   .anniversary-shell,
@@ -5153,7 +5298,7 @@ kbd {
   }
 
   .drawer-tabs {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
