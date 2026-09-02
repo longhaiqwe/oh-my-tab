@@ -719,12 +719,21 @@
     overviewGreeting: document.querySelector("#overviewGreeting"),
     overviewDateDisplay: document.querySelector("#overviewDateDisplay"),
     overviewRefreshButton: document.querySelector("#overviewRefreshButton"),
+    overviewTodoForm: document.querySelector("#overviewTodoForm"),
+    overviewTodoInput: document.querySelector("#overviewTodoInput"),
+    overviewTodoSubmit: document.querySelector("#overviewTodoSubmit"),
     overviewTodoList: document.querySelector("#overviewTodoList"),
     overviewTodoCount: document.querySelector("#overviewTodoCount"),
     overviewTodoNote: document.querySelector("#overviewTodoNote"),
     overviewAnniversaryList: document.querySelector("#overviewAnniversaryList"),
     overviewAnniversaryCount: document.querySelector("#overviewAnniversaryCount"),
     overviewAnniversaryNote: document.querySelector("#overviewAnniversaryNote"),
+    anniversaryReminderBanner: document.querySelector("#anniversaryReminderBanner"),
+    anniversaryBannerIcon: document.querySelector("#anniversaryBannerIcon"),
+    anniversaryBannerTitle: document.querySelector("#anniversaryBannerTitle"),
+    anniversaryBannerDesc: document.querySelector("#anniversaryBannerDesc"),
+    anniversaryBannerViewBtn: document.querySelector("#anniversaryBannerViewBtn"),
+    anniversaryBannerCloseBtn: document.querySelector("#anniversaryBannerCloseBtn"),
     overviewTabsList: document.querySelector("#overviewTabsList"),
     overviewTabsCount: document.querySelector("#overviewTabsCount"),
     overviewTabsNote: document.querySelector("#overviewTabsNote"),
@@ -1527,6 +1536,13 @@
 
   function saveAnniversaries() {
     state.anniversaries.updatedAt = Date.now();
+    try {
+      if (chrome.runtime?.sendMessage) {
+        chrome.runtime.sendMessage({ type: "anniversary:updateBadge" }, () => {
+          const _err = chrome.runtime.lastError;
+        });
+      }
+    } catch (_e) {}
     return storageSet({ [anniversaryStorageKey]: state.anniversaries });
   }
 
@@ -1888,6 +1904,15 @@
   }
 
   async function loadMainView() {
+    const hash = (window.location.hash || "").replace(/^#/, "");
+    if (mainViewNames.includes(hash)) {
+      state.mainView = hash;
+      if (state.mainView === "reading") {
+        prepareReadingReviewLoadingState();
+      }
+      renderMainTabs();
+      return;
+    }
     const stored = await storageGet(mainViewStorageKey);
     const value = stored[mainViewStorageKey] || defaultMainView;
     state.mainView = mainViewNames.includes(value) ? value : defaultMainView;
@@ -1942,6 +1967,62 @@
     return empty;
   }
 
+  const anniversaryBannerDismissKey = "ohmytabAnniversaryBannerDismissedDate";
+
+  function isAnniversaryBannerDismissedToday() {
+    try {
+      const today = new Date().toISOString().slice(0, 10);
+      const dismissed = sessionStorage.getItem(anniversaryBannerDismissKey);
+      return dismissed === today;
+    } catch (_e) {
+      return false;
+    }
+  }
+
+  function dismissAnniversaryBannerToday() {
+    try {
+      const today = new Date().toISOString().slice(0, 10);
+      sessionStorage.setItem(anniversaryBannerDismissKey, today);
+    } catch (_e) {}
+    if (elements.anniversaryReminderBanner) {
+      elements.anniversaryReminderBanner.hidden = true;
+    }
+  }
+
+  function renderAnniversaryReminderBanner() {
+    if (!elements.anniversaryReminderBanner) return;
+    if (isAnniversaryBannerDismissedToday()) {
+      elements.anniversaryReminderBanner.hidden = true;
+      return;
+    }
+
+    const allItems = getAnniversaryItems();
+    const active = anniversaryUtils?.getActiveReminderOccurrences
+      ? anniversaryUtils.getActiveReminderOccurrences(allItems, new Date())
+      : [];
+
+    if (!active.length) {
+      elements.anniversaryReminderBanner.hidden = true;
+      return;
+    }
+
+    const topItem = active[0];
+    const isToday = topItem.daysUntil === 0;
+    elements.anniversaryReminderBanner.classList.toggle("is-today", isToday);
+
+    if (isToday) {
+      elements.anniversaryBannerTitle.textContent = `🎉 今天是【${topItem.title}】！`;
+      elements.anniversaryBannerDesc.textContent = topItem.anniversaryYearLabel
+        ? `今天是 ${topItem.title}（第 ${topItem.anniversaryYearLabel}），祝度过美好的一天！`
+        : `今天是 ${topItem.title}（${topItem.originalDateLabel}），别忘了送上祝福或庆祝哦！`;
+    } else {
+      elements.anniversaryBannerTitle.textContent = `⏳ 距离【${topItem.title}】还有 ${topItem.daysUntil} 天`;
+      elements.anniversaryBannerDesc.textContent = `${topItem.title} 即将于 ${topItem.currentDateLabel} 到来（${topItem.originalDateLabel}）${active.length > 1 ? `，另有 ${active.length - 1} 个提醒` : ""}`;
+    }
+
+    elements.anniversaryReminderBanner.hidden = false;
+  }
+
   function renderOverview() {
     if (!elements.overviewView) return;
     elements.overviewGreeting.textContent = `${getOverviewGreeting()}，今日导览`;
@@ -1951,6 +2032,7 @@
       month: "long",
       day: "numeric"
     }).format(new Date());
+    renderAnniversaryReminderBanner();
     renderOverviewTodoCard();
     renderOverviewAnniversaryCard();
     renderOverviewTabsCard();
@@ -1989,9 +2071,58 @@
           const row = createElement("div", "overview-todo-item");
           const check = createElement("button", "overview-todo-check");
           check.type = "button";
-          check.setAttribute("aria-label", t("markDone"));
-          check.addEventListener("click", () => toggleTodoDone(todo.id));
-          row.append(check, createElement("span", "overview-todo-text", todo.title));
+          const text = createElement("span", "overview-todo-text", todo.title);
+          text.title = "双击修改待办";
+
+          const startEditing = () => {
+            if (row.classList.contains("is-editing")) return;
+            row.classList.add("is-editing");
+
+            const input = createElement("input", "overview-todo-edit-input");
+            input.type = "text";
+            input.value = todo.title;
+            input.maxLength = 120;
+            input.setAttribute("aria-label", "编辑待办");
+
+            let committed = false;
+            const finishEdit = async (save) => {
+              if (committed) return;
+              committed = true;
+              if (save) {
+                const next = input.value.trim();
+                if (next && next !== todo.title) {
+                  await updateTodo(todo.id, next);
+                  return;
+                }
+              }
+              row.classList.remove("is-editing");
+              input.replaceWith(text);
+            };
+
+            input.addEventListener("keydown", (e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                finishEdit(true);
+              } else if (e.key === "Escape") {
+                e.preventDefault();
+                finishEdit(false);
+              }
+            });
+            input.addEventListener("blur", () => finishEdit(true));
+            input.addEventListener("click", (e) => e.stopPropagation());
+            input.addEventListener("dblclick", (e) => e.stopPropagation());
+
+            text.replaceWith(input);
+            input.focus();
+            input.select();
+          };
+
+          text.addEventListener("dblclick", (event) => {
+            event.stopPropagation();
+            startEditing();
+          });
+
+          row.append(check, text);
           elements.overviewTodoList.append(row);
         });
     }
@@ -3557,20 +3688,30 @@
   }
 
   function isValidAnniversary(item) {
+    if (anniversaryUtils?.isValidAnniversary) {
+      return anniversaryUtils.isValidAnniversary(item);
+    }
     if (!item || !String(item.title || "").trim()) {
       return false;
     }
     if (item.calendar === "lunar") {
-      return Number.isFinite(Number(item.lunarMonth)) && Number.isFinite(Number(item.lunarDay));
+      const m = Number(item.lunarMonth);
+      const d = Number(item.lunarDay);
+      return Number.isInteger(m) && m >= 1 && m <= 12 && Number.isInteger(d) && d >= 1 && d <= 30;
     }
     if (item.calendar === "solar") {
-      return Number.isFinite(Number(item.solarMonth)) && Number.isFinite(Number(item.solarDay));
+      const m = Number(item.solarMonth);
+      const d = Number(item.solarDay);
+      return Number.isInteger(m) && m >= 1 && m <= 12 && Number.isInteger(d) && d >= 1 && d <= 31;
     }
     if (item.calendar === "nthWeekday") {
+      const m = Number(item.solarMonth);
+      const nth = Number(item.nth);
+      const wd = Number(item.weekday);
       return (
-        Number.isFinite(Number(item.solarMonth)) &&
-        Number.isFinite(Number(item.nth)) &&
-        Number.isFinite(Number(item.weekday))
+        Number.isInteger(m) && m >= 1 && m <= 12 &&
+        Number.isInteger(nth) && nth >= 1 && nth <= 5 &&
+        Number.isInteger(wd) && wd >= 0 && wd <= 6
       );
     }
     return false;
@@ -3672,6 +3813,15 @@
       createElement("span", "anniversary-tag sage", getAnniversaryCalendarLabel(item)),
       createElement("span", "anniversary-tag slate", "每年重复")
     );
+    if (item.inReminderWindow) {
+      tags.append(
+        createElement(
+          "span",
+          `anniversary-tag ${item.daysUntil === 0 ? "rose" : "amber"}`,
+          item.daysUntil === 0 ? "今天 🎉" : "提醒中"
+        )
+      );
+    }
     if (item.builtin) {
       tags.append(createElement("span", "anniversary-tag rose", "内置节日"));
     }
@@ -3715,9 +3865,12 @@
     count.append(createElement("strong", "", String(item.daysUntil)), createElement("span", "", "days"));
     const copy = createElement("div", "anniversary-event-copy");
     const yearText = getAnniversaryYearText(item);
+    const reminderTag = item.inReminderWindow
+      ? (item.daysUntil === 0 ? " · 今天 🎉" : " · 提醒中")
+      : "";
     const noteText = item.builtin
-      ? `${item.originalDateLabel} · ${item.currentDateLabel} · 内置节日`
-      : `${item.originalDateLabel} · ${item.currentDateLabel}${yearText ? ` · ${yearText}` : ""}`;
+      ? `${item.originalDateLabel} · ${item.currentDateLabel} · 内置节日${reminderTag}`
+      : `${item.originalDateLabel} · ${item.currentDateLabel}${yearText ? ` · ${yearText}` : ""}${reminderTag}`;
     copy.append(createElement("h3", "anniversary-event-title", item.title), createElement("p", "anniversary-event-note", noteText));
     card.append(count, copy);
     if (!item.builtin) {
@@ -3832,6 +3985,44 @@
     closeAnniversaryDialog();
   }
 
+  function handleAnniversaryYearInput(event) {
+    if (event.inputType === "deleteContentBackward" || event.inputType === "deleteContentForward") {
+      return;
+    }
+    const value = event.target.value;
+    const isComplete = anniversaryUtils?.isYearInputComplete
+      ? anniversaryUtils.isYearInputComplete(value)
+      : /^\d{4}$/.test(String(value || "").trim());
+    if (isComplete) {
+      const nextInput = state.anniversaryCalendar === "lunar"
+        ? elements.anniversaryLunarMonth
+        : elements.anniversarySolarMonth;
+      if (nextInput) {
+        nextInput.focus();
+        nextInput.select();
+      }
+    }
+  }
+
+  function handleAnniversaryMonthInput(event) {
+    if (event.inputType === "deleteContentBackward" || event.inputType === "deleteContentForward") {
+      return;
+    }
+    const value = event.target.value;
+    const isComplete = anniversaryUtils?.isMonthInputComplete
+      ? anniversaryUtils.isMonthInputComplete(value)
+      : (/^[2-9]$/.test(String(value || "").trim()) || /^\d{2,}$/.test(String(value || "").trim()));
+    if (isComplete) {
+      const nextInput = state.anniversaryCalendar === "lunar"
+        ? elements.anniversaryLunarDay
+        : elements.anniversarySolarDay;
+      if (nextInput) {
+        nextInput.focus();
+        nextInput.select();
+      }
+    }
+  }
+
   async function handleAnniversarySubmit(event) {
     event.preventDefault();
     const id = elements.anniversaryId.value || crypto.randomUUID();
@@ -3843,9 +4034,9 @@
       repeat: "yearly",
       updatedAt: Date.now()
     };
-    const startYear = Number(elements.anniversaryStartYear.value);
-    if (Number.isInteger(startYear) && startYear > 0) {
-      item.startYear = startYear;
+    const rawStartYear = elements.anniversaryStartYear.value.trim();
+    if (rawStartYear) {
+      item.startYear = Number(rawStartYear);
     }
     if (state.anniversaryCalendar === "lunar") {
       item.lunarMonth = Number(elements.anniversaryLunarMonth.value);
@@ -3854,8 +4045,18 @@
       item.solarMonth = Number(elements.anniversarySolarMonth.value);
       item.solarDay = Number(elements.anniversarySolarDay.value);
     }
-    if (!isValidAnniversary(item)) {
-      showToast("请补全纪念日信息");
+    const validationError = anniversaryUtils?.validateAnniversaryInput
+      ? anniversaryUtils.validateAnniversaryInput(item)
+      : (!isValidAnniversary(item) ? "请补全纪念日信息" : null);
+    if (validationError) {
+      showToast(validationError);
+      return;
+    }
+    const duplicate = anniversaryUtils?.findDuplicateAnniversary
+      ? anniversaryUtils.findDuplicateAnniversary(item, getAnniversaryItems())
+      : null;
+    if (duplicate) {
+      showToast("已存在相同的纪念日");
       return;
     }
     const index = state.anniversaries.items.findIndex((eventItem) => eventItem.id === id);
@@ -4061,11 +4262,61 @@
       check.addEventListener("click", () => toggleTodoDone(todo.id));
 
       const text = createElement("span", "todo-text", todo.title);
-      text.setAttribute("role", "button");
       text.tabIndex = 0;
-      text.addEventListener("click", () => toggleTodoDone(todo.id));
+      text.title = "双击修改待办";
+
+      const startEditing = () => {
+        if (item.classList.contains("is-editing")) return;
+        item.classList.add("is-editing");
+
+        const input = createElement("input", "todo-edit-input");
+        input.type = "text";
+        input.value = todo.title;
+        input.maxLength = 120;
+        input.setAttribute("aria-label", "编辑待办");
+
+        let committed = false;
+        const finishEdit = async (save) => {
+          if (committed) return;
+          committed = true;
+          if (save) {
+            const next = input.value.trim();
+            if (next && next !== todo.title) {
+              await updateTodo(todo.id, next);
+              return;
+            }
+          }
+          item.classList.remove("is-editing");
+          input.replaceWith(text);
+        };
+
+        input.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            finishEdit(true);
+          } else if (e.key === "Escape") {
+            e.preventDefault();
+            finishEdit(false);
+          }
+        });
+        input.addEventListener("blur", () => finishEdit(true));
+        input.addEventListener("click", (e) => e.stopPropagation());
+        input.addEventListener("dblclick", (e) => e.stopPropagation());
+
+        text.replaceWith(input);
+        input.focus();
+        input.select();
+      };
+
+      text.addEventListener("dblclick", (event) => {
+        event.stopPropagation();
+        startEditing();
+      });
       text.addEventListener("keydown", (event) => {
-        if (event.key === "Enter" || event.key === " ") {
+        if (event.key === "Enter" || event.key === "F2") {
+          event.preventDefault();
+          startEditing();
+        } else if (event.key === " ") {
           event.preventDefault();
           toggleTodoDone(todo.id);
         }
@@ -4364,6 +4615,25 @@
       createdAt: Date.now(),
       updatedAt: Date.now()
     });
+    await saveTodos();
+    renderTodos();
+    return true;
+  }
+
+  async function updateTodo(id, newTitle) {
+    const cleanTitle = (newTitle || "").trim().slice(0, 120);
+    if (!cleanTitle) {
+      return false;
+    }
+    const item = state.todos.items.find((todo) => todo.id === id);
+    if (!item) {
+      return false;
+    }
+    if (item.title === cleanTitle) {
+      return true;
+    }
+    item.title = cleanTitle;
+    item.updatedAt = Date.now();
     await saveTodos();
     renderTodos();
     return true;
@@ -5794,6 +6064,12 @@
     if (elements.overviewRefreshButton) {
       elements.overviewRefreshButton.addEventListener("click", () => refreshOverview());
     }
+    if (elements.anniversaryBannerViewBtn) {
+      elements.anniversaryBannerViewBtn.addEventListener("click", () => setMainView("anniversary"));
+    }
+    if (elements.anniversaryBannerCloseBtn) {
+      elements.anniversaryBannerCloseBtn.addEventListener("click", dismissAnniversaryBannerToday);
+    }
     if (elements.overviewTabsCleanButton) {
       elements.overviewTabsCleanButton.addEventListener("click", handleOverviewCleanDuplicates);
     }
@@ -5853,6 +6129,9 @@
     elements.anniversaryCalendarButtons.forEach((button) => {
       button.addEventListener("click", () => setAnniversaryCalendar(button.dataset.anniversaryCalendar));
     });
+    elements.anniversaryStartYear.addEventListener("input", handleAnniversaryYearInput);
+    elements.anniversaryLunarMonth.addEventListener("input", handleAnniversaryMonthInput);
+    elements.anniversarySolarMonth.addEventListener("input", handleAnniversaryMonthInput);
     elements.anniversaryForm.addEventListener("submit", handleAnniversarySubmit);
     elements.anniversaryDialogCloseButton.addEventListener("click", closeAnniversaryDialog);
     elements.anniversaryCancelButton.addEventListener("click", closeAnniversaryDialog);
@@ -6015,6 +6294,20 @@
         }
       });
     });
+    if (elements.overviewTodoForm) {
+      elements.overviewTodoForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const title = elements.overviewTodoInput?.value.trim();
+        if (!title) {
+          return;
+        }
+        addTodo(title).then((added) => {
+          if (added && elements.overviewTodoInput) {
+            elements.overviewTodoInput.value = "";
+          }
+        });
+      });
+    }
     elements.drawerTabs.forEach((button) => {
       button.addEventListener("click", () => setDrawerTab(button.dataset.drawerTab));
     });

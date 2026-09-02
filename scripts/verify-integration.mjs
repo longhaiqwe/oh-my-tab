@@ -36,6 +36,16 @@ assertIncludes(html, 'id="readingReviewView"', "newtab.html must include the rea
 assertIncludes(html, 'id="anniversaryReminderView"', "newtab.html must include the anniversary reminder view container.");
 assertIncludes(html, 'id="overviewView"', "newtab.html must include the overview view container.");
 assertIncludes(html, 'id="overviewTodoCard"', "the overview page must show a todo area.");
+assertIncludes(html, 'id="overviewTodoForm"', "the overview page must expose a quick-add todo form.");
+assertIncludes(html, 'id="overviewTodoInput"', "the overview page must expose a quick-add todo input.");
+assertIncludes(html, 'id="overviewTodoSubmit"', "the overview page must expose a quick-add todo submit button.");
+assertIncludes(css, ".overview-todo-form", "newtab.css must style the overview quick-add todo form.");
+assertIncludes(js, "overviewTodoForm", "newtab.js must wire up the overview quick-add todo form submit listener.");
+assertIncludes(js, "function updateTodo", "newtab.js must provide updateTodo function to modify todo items.");
+assertIncludes(js, "todo-edit-input", "newtab.js must support inline editing for work view todos.");
+assertIncludes(js, "overview-todo-edit-input", "newtab.js must support inline editing for overview todos.");
+assertIncludes(css, ".todo-edit-input", "newtab.css must style the work view inline edit input.");
+assertIncludes(css, ".overview-todo-edit-input", "newtab.css must style the overview inline edit input.");
 assertIncludes(html, 'id="overviewAnniversaryCard"', "the overview page must show an upcoming-dates area.");
 assertIncludes(html, 'id="overviewTabsCard"', "the overview page must show a duplicate-tab area.");
 assertIncludes(html, 'id="overviewNoteCard"', "the overview page must show a note highlight area.");
@@ -50,6 +60,11 @@ assertIncludes(html, 'class="anniversary-date-row"', "anniversary year, month, a
 assertIncludes(html, 'id="anniversaryStartYear"', "newtab.html must let users enter the anniversary start year.");
 assertIncludes(html, 'placeholder="例如：1998"', "anniversary year input must show an example year.");
 assertIncludes(html, 'id="anniversaryAdvanceDays" required type="number" min="0" max="365" inputmode="numeric" value="7"', "new anniversary reminders must default to 7 days.");
+assertIncludes(html, 'id="anniversaryReminderBanner"', "newtab.html must include the anniversary reminder banner.");
+assertIncludes(css, ".anniversary-reminder-banner", "newtab.css must style the anniversary reminder banner.");
+assertIncludes(background, "updateAnniversaryBadge", "background.js must update the anniversary badge.");
+assertIncludes(background, "checkAndSendAnniversaryNotifications", "background.js must check and send anniversary notifications.");
+assertIncludes(js, "renderAnniversaryReminderBanner", "newtab.js must render the anniversary reminder banner.");
 assertIncludes(html, "src/anniversary-utils.js", "newtab.html must load the anniversary date utility before newtab.js.");
 assertIncludes(html, "newtab.js?v=2", "newtab.html must cache-bust the main new tab script.");
 assert(!html.includes("Quick add"), "The anniversary homepage must not expose a persistent quick-add form.");
@@ -87,6 +102,7 @@ assertIncludes(html, "感谢", "newtab.html must thank the referenced project au
 assert(manifest.permissions.includes("tabs"), "manifest.json must request tabs permission for tabout features.");
 assert(manifest.permissions.includes("storage"), "manifest.json must keep storage permission for local data.");
 assert(manifest.permissions.includes("alarms"), "manifest.json must request alarms permission for daily WeRead sync.");
+assert(manifest.permissions.includes("notifications"), "manifest.json must request notifications permission for anniversary reminders.");
 assert(manifest.host_permissions.includes("https://i.weread.qq.com/*"), "manifest.json must allow direct WeRead gateway requests.");
 assert(
   !manifest.host_permissions.includes("https://weread.qq.com/*"),
@@ -146,6 +162,11 @@ assertIncludes(js, "renderAnniversaryReminderView", "newtab.js must render the a
 assertIncludes(js, "getUpcomingAnniversaryOccurrences", "newtab.js must use the shared anniversary date utility.");
 assertIncludes(js, "openAnniversaryDrawer", "newtab.js must open the all-anniversaries drawer on demand.");
 assertIncludes(js, "openAnniversaryDialog", "newtab.js must open add/edit anniversary forms on demand.");
+assertIncludes(js, "findDuplicateAnniversary", "newtab.js must check for duplicate anniversaries before saving.");
+assertIncludes(js, "validateAnniversaryInput", "newtab.js must validate anniversary inputs before saving.");
+assertIncludes(js, "已存在相同的纪念日", "newtab.js must toast a warning when a duplicate anniversary is submitted.");
+assertIncludes(js, "handleAnniversaryYearInput", "newtab.js must advance focus when anniversary year input completes.");
+assertIncludes(js, "handleAnniversaryMonthInput", "newtab.js must advance focus when anniversary month input completes.");
 assertIncludes(js, "anniversary-feature-edit", "The nearest anniversary card must expose an edit affordance.");
 assertIncludes(js, '["overview", "work", "tabs", "reading", "anniversary"]', "newtab.js must treat overview and anniversary as top-level main views.");
 assertIncludes(js, 'const defaultMainView = "overview"', "newtab.js must land on the overview page by default.");

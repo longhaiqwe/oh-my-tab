@@ -53,6 +53,20 @@
           </div>
         </header>
 
+        <div id="anniversaryReminderBanner" class="anniversary-reminder-banner" hidden aria-live="polite">
+          <div class="anniversary-banner-icon" id="anniversaryBannerIcon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
+          </div>
+          <div class="anniversary-banner-content">
+            <strong id="anniversaryBannerTitle" class="anniversary-banner-title"></strong>
+            <span id="anniversaryBannerDesc" class="anniversary-banner-desc"></span>
+          </div>
+          <div class="anniversary-banner-actions">
+            <button id="anniversaryBannerViewBtn" class="anniversary-banner-btn" type="button">查看</button>
+            <button id="anniversaryBannerCloseBtn" class="anniversary-banner-close" type="button" aria-label="今日暂不提醒">×</button>
+          </div>
+        </div>
+
         <div class="overview-grid">
           <article class="overview-card" id="overviewTodoCard" aria-label="今日待办">
             <div class="overview-card-head">
@@ -64,6 +78,13 @@
               </div>
               <span class="overview-card-count" id="overviewTodoCount">0</span>
             </div>
+            <form id="overviewTodoForm" class="overview-todo-form">
+              <label class="sr-only" for="overviewTodoInput">添加待办</label>
+              <input id="overviewTodoInput" type="text" placeholder="写下一件事，Enter 添加" autocomplete="off" maxlength="120">
+              <button id="overviewTodoSubmit" class="overview-todo-submit" type="submit" aria-label="添加待办">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+              </button>
+            </form>
             <div class="overview-card-body" id="overviewTodoList" aria-live="polite"></div>
             <div class="overview-card-foot">
               <span class="overview-card-note" id="overviewTodoNote"></span>

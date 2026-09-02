@@ -57,7 +57,8 @@
     "history",
     "tabs",
     "storage",
-    "alarms"
+    "alarms",
+    "notifications"
   ],
   "host_permissions": [
     "https://chatgpt.com/*",

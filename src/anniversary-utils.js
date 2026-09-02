@@ -207,6 +207,18 @@
     };
   }
 
+  const defaultAnniversaryAdvanceDays = 7;
+  const builtinAnniversaries = [
+    { id: "builtin-valentines-day", title: "情人节", calendar: "solar", solarMonth: 2, solarDay: 14, advanceDays: defaultAnniversaryAdvanceDays, repeat: "yearly", builtin: true },
+    { id: "builtin-womens-day", title: "妇女节", calendar: "solar", solarMonth: 3, solarDay: 8, advanceDays: defaultAnniversaryAdvanceDays, repeat: "yearly", builtin: true },
+    { id: "builtin-mothers-day", title: "母亲节", calendar: "nthWeekday", solarMonth: 5, nth: 2, weekday: 0, advanceDays: defaultAnniversaryAdvanceDays, repeat: "yearly", builtin: true },
+    { id: "builtin-fathers-day", title: "父亲节", calendar: "nthWeekday", solarMonth: 6, nth: 3, weekday: 0, advanceDays: defaultAnniversaryAdvanceDays, repeat: "yearly", builtin: true },
+    { id: "builtin-childrens-day", title: "儿童节", calendar: "solar", solarMonth: 6, solarDay: 1, advanceDays: defaultAnniversaryAdvanceDays, repeat: "yearly", builtin: true },
+    { id: "builtin-qixi", title: "七夕", calendar: "lunar", lunarMonth: 7, lunarDay: 7, advanceDays: defaultAnniversaryAdvanceDays, repeat: "yearly", builtin: true },
+    { id: "builtin-mid-autumn", title: "中秋节", calendar: "lunar", lunarMonth: 8, lunarDay: 15, advanceDays: defaultAnniversaryAdvanceDays, repeat: "yearly", builtin: true },
+    { id: "builtin-double-ninth", title: "重阳节", calendar: "lunar", lunarMonth: 9, lunarDay: 9, advanceDays: defaultAnniversaryAdvanceDays, repeat: "yearly", builtin: true }
+  ];
+
   function getUpcomingAnniversaryOccurrences(events = [], referenceDate = new Date(), limit = 3) {
     return events
       .map((event) => getNextAnniversaryOccurrence(event, referenceDate))
@@ -215,11 +227,197 @@
       .slice(0, limit);
   }
 
+  function getActiveReminderOccurrences(events = [], referenceDate = new Date()) {
+    return events
+      .map((event) => getNextAnniversaryOccurrence(event, referenceDate))
+      .filter((occurrence) => Boolean(occurrence && occurrence.inReminderWindow))
+      .sort((a, b) => a.daysUntil - b.daysUntil || a.title.localeCompare(b.title, "zh-CN"));
+  }
+
+  function normalizeTitle(title) {
+    return String(title || "").trim().toLowerCase();
+  }
+
+  function normalizeStartYear(startYear) {
+    const year = Number(startYear);
+    return Number.isInteger(year) && year > 0 ? year : null;
+  }
+
+  function isSameAnniversaryDate(a, b) {
+    if (!a || !b || a.calendar !== b.calendar) {
+      return false;
+    }
+    if (a.calendar === "lunar") {
+      return (
+        Number(a.lunarMonth) === Number(b.lunarMonth) &&
+        Number(a.lunarDay) === Number(b.lunarDay) &&
+        Boolean(a.isLeapMonth) === Boolean(b.isLeapMonth)
+      );
+    }
+    if (a.calendar === "solar") {
+      return (
+        Number(a.solarMonth) === Number(b.solarMonth) &&
+        Number(a.solarDay) === Number(b.solarDay)
+      );
+    }
+    if (a.calendar === "nthWeekday") {
+      return (
+        Number(a.solarMonth) === Number(b.solarMonth) &&
+        Number(a.nth) === Number(b.nth) &&
+        Number(a.weekday) === Number(b.weekday)
+      );
+    }
+    return false;
+  }
+
+  function isDuplicateAnniversary(a, b) {
+    if (!a || !b) {
+      return false;
+    }
+    if (normalizeTitle(a.title) !== normalizeTitle(b.title)) {
+      return false;
+    }
+    if (!isSameAnniversaryDate(a, b)) {
+      return false;
+    }
+    return normalizeStartYear(a.startYear) === normalizeStartYear(b.startYear);
+  }
+
+  function findDuplicateAnniversary(target, list = []) {
+    if (!target || !Array.isArray(list)) {
+      return null;
+    }
+    return list.find((item) => item && item.id !== target.id && isDuplicateAnniversary(item, target)) || null;
+  }
+
+  function isYearInputComplete(value) {
+    const str = String(value ?? "").trim();
+    return /^\d{4}$/.test(str);
+  }
+
+  function isMonthInputComplete(value) {
+    const str = String(value ?? "").trim();
+    if (!/^\d+$/.test(str)) {
+      return false;
+    }
+    const num = Number(str);
+    if (str.length === 1 && num >= 2 && num <= 9) {
+      return true;
+    }
+    if (str.length === 2 && num >= 1 && num <= 12) {
+      return true;
+    }
+    return false;
+  }
+
+  function getSolarMonthMaxDays(month, year = null) {
+    const m = Number(month);
+    if (!Number.isInteger(m) || m < 1 || m > 12) {
+      return 0;
+    }
+    if (m === 2) {
+      const y = Number(year);
+      if (Number.isInteger(y) && y > 0) {
+        const isLeap = (y % 4 === 0 && y % 100 !== 0) || (y % 400 === 0);
+        return isLeap ? 29 : 28;
+      }
+      return 29;
+    }
+    if ([4, 6, 9, 11].includes(m)) {
+      return 30;
+    }
+    return 31;
+  }
+
+  function validateAnniversaryInput(item) {
+    if (!item || typeof item !== "object") {
+      return "请补全纪念日信息";
+    }
+    const title = String(item.title || "").trim();
+    if (!title) {
+      return "请输入纪念日名称";
+    }
+    if (title.length > 48) {
+      return "纪念日名称不能超过 48 个字";
+    }
+
+    if (item.startYear !== undefined && item.startYear !== null && item.startYear !== "") {
+      const year = Number(item.startYear);
+      if (!Number.isInteger(year) || year < 1 || year > 9999) {
+        return "年份必须在 1 到 9999 之间";
+      }
+    }
+
+    if (item.advanceDays !== undefined && item.advanceDays !== null && item.advanceDays !== "") {
+      const days = Number(item.advanceDays);
+      if (!Number.isInteger(days) || days < 0 || days > 365) {
+        return "提前提醒天数必须在 0 到 365 之间";
+      }
+    }
+
+    if (item.calendar === "lunar") {
+      const month = Number(item.lunarMonth);
+      const day = Number(item.lunarDay);
+      if (!Number.isInteger(month) || month < 1 || month > 12) {
+        return "农历月份必须在 1 到 12 之间";
+      }
+      if (!Number.isInteger(day) || day < 1 || day > 30) {
+        return "农历日期必须在 1 到 30 之间";
+      }
+      return null;
+    }
+
+    if (item.calendar === "solar") {
+      const month = Number(item.solarMonth);
+      const day = Number(item.solarDay);
+      if (!Number.isInteger(month) || month < 1 || month > 12) {
+        return "公历月份必须在 1 到 12 之间";
+      }
+      const maxDays = getSolarMonthMaxDays(month, item.startYear);
+      if (!Number.isInteger(day) || day < 1 || day > maxDays) {
+        return `${month} 月日期必须在 1 到 ${maxDays} 之间`;
+      }
+      return null;
+    }
+
+    if (item.calendar === "nthWeekday") {
+      const month = Number(item.solarMonth);
+      const nth = Number(item.nth);
+      const weekday = Number(item.weekday);
+      if (!Number.isInteger(month) || month < 1 || month > 12) {
+        return "月份必须在 1 到 12 之间";
+      }
+      if (!Number.isInteger(nth) || nth < 1 || nth > 5) {
+        return "周数必须在 1 到 5 之间";
+      }
+      if (!Number.isInteger(weekday) || weekday < 0 || weekday > 6) {
+        return "星期必须在周日到周六之间";
+      }
+      return null;
+    }
+
+    return "请选择有效的日期类型";
+  }
+
+  function isValidAnniversary(item) {
+    return validateAnniversaryInput(item) === null;
+  }
+
   return {
     getNextAnniversaryOccurrence,
     getUpcomingAnniversaryOccurrences,
     formatOriginalDateLabel,
     formatSolarLabel,
-    toIsoDate
+    toIsoDate,
+    isDuplicateAnniversary,
+    findDuplicateAnniversary,
+    isYearInputComplete,
+    isMonthInputComplete,
+    getSolarMonthMaxDays,
+    validateAnniversaryInput,
+    isValidAnniversary,
+    defaultAnniversaryAdvanceDays,
+    builtinAnniversaries,
+    getActiveReminderOccurrences
   };
 });

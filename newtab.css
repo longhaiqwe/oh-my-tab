@@ -263,6 +263,127 @@ body > * {
   font-weight: 300;
 }
 
+.anniversary-reminder-banner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+  padding: 14px 20px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent-rose) 12%, var(--panel-bg)) 0%, color-mix(in srgb, var(--accent-rose) 6%, var(--panel-bg)) 100%);
+  border: 1px solid color-mix(in srgb, var(--accent-rose) 25%, transparent);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+  animation: bannerFadeIn 0.3s ease-out;
+}
+
+.anniversary-reminder-banner[hidden] {
+  display: none !important;
+}
+
+.anniversary-reminder-banner.is-today {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent-rose) 18%, var(--panel-bg)) 0%, color-mix(in srgb, var(--accent-rose) 8%, var(--panel-bg)) 100%);
+  border-color: color-mix(in srgb, var(--accent-rose) 40%, transparent);
+}
+
+.anniversary-banner-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--accent-rose) 18%, transparent);
+  color: var(--accent-rose);
+  flex-shrink: 0;
+}
+
+.anniversary-banner-icon svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  stroke-width: 2;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.anniversary-banner-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.anniversary-banner-title {
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.anniversary-banner-desc {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.anniversary-banner-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.anniversary-banner-btn {
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--accent-rose) 30%, transparent);
+  background: var(--surface);
+  color: var(--accent-rose);
+  font-size: 12px;
+  font-weight: 550;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.anniversary-banner-btn:hover {
+  background: var(--accent-rose);
+  color: #ffffff;
+}
+
+.anniversary-banner-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.anniversary-banner-close:hover {
+  background: color-mix(in srgb, var(--ink) 8%, transparent);
+  color: var(--ink);
+}
+
+@keyframes bannerFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .date,
 .section-eyebrow {
   margin: 0;
@@ -511,6 +632,85 @@ body > * {
   line-height: 1.6;
 }
 
+.overview-todo-form {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 10px 0 6px;
+  padding: 4px 6px 4px 10px;
+  background: color-mix(in srgb, var(--warm-gray) 30%, transparent);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+}
+
+.overview-todo-form:focus-within {
+  background: var(--surface-strong);
+  border-color: var(--accent-sage);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-sage) 15%, transparent);
+}
+
+:root[data-theme="dark"] .overview-todo-form {
+  background: color-mix(in srgb, var(--surface) 50%, transparent);
+  border-color: var(--line);
+}
+
+:root[data-theme="dark"] .overview-todo-form:focus-within {
+  background: var(--surface-strong);
+  border-color: var(--accent-sage);
+}
+
+.overview-todo-form input {
+  flex: 1;
+  min-width: 0;
+  padding: 4px 0;
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 13px;
+  background: transparent;
+  border: none;
+  outline: none;
+}
+
+.overview-todo-form input::placeholder {
+  color: var(--muted);
+  opacity: 0.85;
+}
+
+.overview-todo-submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  color: var(--muted);
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: color 160ms ease, background 160ms ease, transform 160ms ease;
+}
+
+.overview-todo-submit svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.overview-todo-submit:hover {
+  color: var(--accent-sage);
+  background: color-mix(in srgb, var(--accent-sage) 16%, transparent);
+}
+
+.overview-todo-submit:active {
+  transform: scale(0.92);
+}
+
 .overview-todo-item {
   display: flex;
   align-items: center;
@@ -545,6 +745,26 @@ body > * {
   font-size: 13px;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.overview-todo-edit-input {
+  flex: 1;
+  min-width: 0;
+  padding: 2px 6px;
+  margin: -3px -7px;
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 13px;
+  background: var(--surface-strong);
+  border: 1px solid var(--accent-sage);
+  border-radius: 6px;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-sage) 15%, transparent);
+  outline: none;
+}
+
+:root[data-theme="dark"] .overview-todo-edit-input {
+  background: var(--surface-strong);
+  border-color: var(--accent-sage);
 }
 
 .overview-date-item {
@@ -817,6 +1037,11 @@ body > * {
 .anniversary-tag.rose {
   color: var(--accent-rose);
   background: rgba(179, 90, 90, 0.09);
+}
+
+.anniversary-tag.amber {
+  color: var(--accent-amber);
+  background: rgba(184, 115, 51, 0.12);
 }
 
 .anniversary-feature-title {
@@ -3064,6 +3289,27 @@ p {
   color: var(--muted);
   text-decoration: line-through;
   text-decoration-thickness: 1px;
+}
+
+.todo-edit-input {
+  width: 100%;
+  min-width: 0;
+  padding: 3px 6px;
+  margin: -4px -7px;
+  color: var(--ink);
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  background: var(--surface-strong);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 12%, transparent);
+  outline: none;
+}
+
+:root[data-theme="dark"] .todo-edit-input {
+  background: var(--surface-strong);
+  border-color: var(--accent);
 }
 
 .toast {
